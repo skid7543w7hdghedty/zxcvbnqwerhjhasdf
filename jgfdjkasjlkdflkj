@@ -985,7 +985,7 @@ local function CREATE_INFO_LABEL(PARENT)
     infoLabel.TextScaled = false
     infoLabel.TextWrapped = true
     infoLabel.Font = Enum.Font.GothamBold
-    infoLabel.TextSize = 21
+    infoLabel.TextSize = 23.5
     infoLabel.RichText = true
     infoLabel.Parent = PARENT
     return infoLabel

@@ -978,14 +978,14 @@ local function CREATE_INFO_LABEL(PARENT)
     local infoLabel = Instance.new("TextLabel")
     infoLabel.Name = "InfoLabel"
     infoLabel.Size = UDim2.new(1, 0, 0.35, 0)
-    infoLabel.Position = UDim2.new(0, 0, 0.17, 0)
+    infoLabel.Position = UDim2.new(0, 0, 0.20, 0)
     infoLabel.BackgroundTransparency = 0.5
     infoLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     infoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     infoLabel.TextScaled = false
     infoLabel.TextWrapped = true
     infoLabel.Font = Enum.Font.GothamBold
-    infoLabel.TextSize = 25
+    infoLabel.TextSize = 22
     infoLabel.RichText = true
     infoLabel.Parent = PARENT
     return infoLabel

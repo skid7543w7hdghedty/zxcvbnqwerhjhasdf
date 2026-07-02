@@ -1,5 +1,5 @@
     -- ================================================================
-    -- Trade Helper 5.1
+    -- Trade Helper 5.0
     -- Загружает данные напрямую из КАЖДОЙ категории сайта:
     -- /api/values/<category> — в отличие от /api/values/all, эти
     -- эндпоинты отдают ПОЛНЫЕ данные:
@@ -721,12 +721,12 @@
     NotificationBindable.OnInvoke = function() end
 
     game.StarterGui:SetCore("SendNotification", {
-        Title = "Trade Helper 5.1";
+        Title = "Trade Helper 5.0";
         Text = DATA_LOADED
-            and ("Загружено: " .. PARSED_COUNT .. " предметов, " .. LOADED_CATEGORIES .. "/" .. #CATEGORIES .. " категорий")
-            or "Ошибка: не удалось загрузить валюты с сайта!";
+            and ("Loaded: " .. PARSED_COUNT .. " items, " .. LOADED_CATEGORIES .. "/" .. #CATEGORIES .. " categories")
+            or "Error: failed to load values!";
         Icon = "";
-        Duration = 5;
-        Button1 = "OK";
+        Duration = 1;
+        Button1 = "Close";
         Callback = NotificationBindable;
     })

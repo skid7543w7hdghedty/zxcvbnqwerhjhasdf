@@ -1,717 +1,732 @@
--- ================================================================
--- Trade Helper 5.0
--- Загружает данные напрямую из КАЖДОЙ категории сайта:
--- /api/values/<category> — в отличие от /api/values/all, эти
--- эндпоинты отдают ПОЛНЫЕ данные:
---   * текстовые валюты ("x4 T1 Legendaries", "x3 T1 Rares" и т.д.)
---   * скины с суффиксами "(Gun)" / "(Knife)" (Arctic, Latte, ...)
---   * дубликаты имён в разных категориях (Laser в Vintages и Godlies)
--- Новое:
---   * Min/Max профит по диапазонам валют (Underpaid/Overpaid For и др.)
---   * Валюты вида "x4 T1 Legendaries" пересчитываются в диапазон
---     на основе реальных цен Tier 1 предметов той же категории
---   * Валюты соответствуют своей категории (по тегу редкости в GUI,
---     иначе — по приоритету категорий)
--- ================================================================
+    -- ================================================================
+    -- Trade Helper 5.1
+    -- Загружает данные напрямую из КАЖДОЙ категории сайта:
+    -- /api/values/<category> — в отличие от /api/values/all, эти
+    -- эндпоинты отдают ПОЛНЫЕ данные:
+    --   * текстовые валюты ("x4 T1 Legendaries", "x3 T1 Rares" и т.д.)
+    --   * скины с суффиксами "(Gun)" / "(Knife)" (Arctic, Latte, ...)
+    --   * дубликаты имён в разных категориях (Laser в Vintages и Godlies)
+    -- Новое:
+    --   * Min/Max профит по диапазонам валют (Underpaid/Overpaid For и др.)
+    --   * Валюты вида "x4 T1 Legendaries" пересчитываются в диапазон
+    --     на основе реальных цен Tier 1 предметов той же категории
+    --   * Валюты соответствуют своей категории (по тегу редкости в GUI,
+    --     иначе — по приоритету категорий)
+    -- ================================================================
 
-local BASE_API_URL = "https://update-currency-script.vercel.app/api/values/"
+    local BASE_API_URL = "https://update-currency-script.vercel.app/api/values/"
 
--- Порядок = приоритет при совпадении имён (если категорию не удалось
--- определить по тегу в GUI)
-local CATEGORIES = {
-    "godlies", "ancients", "uniques", "vintages", "evos", "chromas",
-    "legendaries", "rares", "uncommons", "commons", "pets", "misc", "untradables",
-}
+    -- Порядок = приоритет при совпадении имён (если категорию не удалось
+    -- определить по тегу в GUI)
+    local CATEGORIES = {
+        "godlies", "ancients", "uniques", "vintages", "evos", "chromas",
+        "legendaries", "rares", "uncommons", "commons", "pets", "misc", "untradables",
+    }
 
--- Сопоставление тегов редкости из GUI игры с категориями сайта
-local TAG_TO_CATEGORY = {
-    ["godly"] = "godlies",
-    ["ancient"] = "ancients",
-    ["unique"] = "uniques",
-    ["vintage"] = "vintages",
-    ["evo"] = "evos",
-    ["evolved"] = "evos",
-    ["chroma"] = "chromas",
-    ["legendary"] = "legendaries",
-    ["rare"] = "rares",
-    ["uncommon"] = "uncommons",
-    ["common"] = "commons",
-    ["pet"] = "pets",
-    ["misc"] = "misc",
-    ["untradable"] = "untradables",
-}
+    -- Сопоставление тегов редкости из GUI игры с категориями сайта
+    local TAG_TO_CATEGORY = {
+        ["godly"] = "godlies",
+        ["ancient"] = "ancients",
+        ["unique"] = "uniques",
+        ["vintage"] = "vintages",
+        ["evo"] = "evos",
+        ["evolved"] = "evos",
+        ["chroma"] = "chromas",
+        ["legendary"] = "legendaries",
+        ["rare"] = "rares",
+        ["uncommon"] = "uncommons",
+        ["common"] = "commons",
+        ["pet"] = "pets",
+        ["misc"] = "misc",
+        ["untradable"] = "untradables",
+    }
 
-local LP = game:GetService("Players").LocalPlayer
-local PG = LP:WaitForChild("PlayerGui", 5)
-if not PG then return end
+    local LP = game:GetService("Players").LocalPlayer
+    local PG = LP:WaitForChild("PlayerGui", 5)
+    if not PG then return end
 
-local HttpService = game:GetService("HttpService")
+    local HttpService = game:GetService("HttpService")
+    local UserInputService = game:GetService("UserInputService")
+    -- Мобильное устройство: есть тач, но нет клавиатуры/мыши
+    local IS_MOBILE = UserInputService.TouchEnabled
+        and not UserInputService.KeyboardEnabled
+        and not UserInputService.MouseEnabled
 
-local stabilityColors = {
-    ["Stable"] = Color3.fromRGB(10, 248, 28),
-    ["Doing Well"] = Color3.fromRGB(0, 0, 255),
-    ["Receding"] = Color3.fromRGB(254, 240, 0),
-    ["Overpaid For"] = Color3.fromRGB(67, 117, 199),
-    ["Underpaid For"] = Color3.fromRGB(187, 98, 29),
-    ["Fluctuating"] = Color3.fromRGB(160, 0, 255),
-    ["Decreasing"] = Color3.fromRGB(255, 0, 0),
-    ["Improving"] = Color3.fromRGB(187, 98, 29),
-    ["Unknown"] = Color3.fromRGB(150, 150, 150),
-}
+    local stabilityColors = {
+        ["Stable"] = Color3.fromRGB(10, 248, 28),
+        ["Doing Well"] = Color3.fromRGB(0, 0, 255),
+        ["Receding"] = Color3.fromRGB(254, 240, 0),
+        ["Overpaid For"] = Color3.fromRGB(67, 117, 199),
+        ["Underpaid For"] = Color3.fromRGB(187, 98, 29),
+        ["Fluctuating"] = Color3.fromRGB(160, 0, 255),
+        ["Decreasing"] = Color3.fromRGB(255, 0, 0),
+        ["Improving"] = Color3.fromRGB(187, 98, 29),
+        ["Unknown"] = Color3.fromRGB(150, 150, 150),
+    }
 
-local stabilityArrows = {
-    ["Stable"] = "",
-    ["Doing Well"] = "→",
-    ["Receding"] = "↙",
-    ["Overpaid For"] = "↗",
-    ["Underpaid For"] = "↙",
-    ["Decreasing"] = "↓",
-    ["Fluctuating"] = "⇆",
-    ["Improving"] = "↗",
-    ["Unknown"] = "~",
-}
+    local stabilityArrows = {
+        ["Stable"] = "",
+        ["Doing Well"] = "→",
+        ["Receding"] = "↙",
+        ["Overpaid For"] = "↗",
+        ["Underpaid For"] = "↙",
+        ["Decreasing"] = "↓",
+        ["Fluctuating"] = "⇆",
+        ["Improving"] = "↗",
+        ["Unknown"] = "~",
+    }
 
-local STABILITY_STATUS_MAP = {
-    ["Overpaid For"] = "Overpaid For",
-    ["Overpaid"] = "Overpaid For",
-    ["Underpaid For"] = "Underpaid For",
-    ["Underpaid"] = "Underpaid For",
-    ["Undepaid"] = "Underpaid For",
-    ["Stable"] = "Stable",
-    ["Doing Well"] = "Doing Well",
-    ["Rising"] = "Doing Well",
-    ["Receding"] = "Receding",
-    ["Fluctuating"] = "Fluctuating",
-    ["Unstable"] = "Receding",
-    ["Decreasing"] = "Decreasing",
-    ["Dropping"] = "Decreasing",
-    ["Improving"] = "Improving",
-}
+    local STABILITY_STATUS_MAP = {
+        ["Overpaid For"] = "Overpaid For",
+        ["Overpaid"] = "Overpaid For",
+        ["Underpaid For"] = "Underpaid For",
+        ["Underpaid"] = "Underpaid For",
+        ["Undepaid"] = "Underpaid For",
+        ["Stable"] = "Stable",
+        ["Doing Well"] = "Doing Well",
+        ["Rising"] = "Doing Well",
+        ["Receding"] = "Receding",
+        ["Fluctuating"] = "Fluctuating",
+        ["Unstable"] = "Receding",
+        ["Decreasing"] = "Decreasing",
+        ["Dropping"] = "Decreasing",
+        ["Improving"] = "Improving",
+    }
 
--- ==============================
--- НОРМАЛИЗАЦИЯ ИМЁН
--- ==============================
-local function NORMALIZE_DISPLAY_NAME(NAME)
-    NAME = NAME:gsub("<.->", "")
-    NAME = NAME:gsub("^%s+", "")
-    NAME = NAME:gsub("%s+$", "")
-    NAME = NAME:gsub("%s+", " ")
-    NAME = NAME:gsub("^C%.%s*", "Chroma ")
-    NAME = NAME:gsub("^Travelers ", "Traveler's ")
-    NAME = NAME:gsub("^Vampires ", "Vampire's ")
-    NAME = NAME:gsub("^Winters ", "Winter's ")
-    NAME = NAME:gsub("^Hallows ", "Hallow's ")
-    return NAME
-end
+    -- ==============================
+    -- НОРМАЛИЗАЦИЯ ИМЁН
+    -- ==============================
+    local function NORMALIZE_DISPLAY_NAME(NAME)
+        NAME = NAME:gsub("<.->", "")
+        NAME = NAME:gsub("^%s+", "")
+        NAME = NAME:gsub("%s+$", "")
+        NAME = NAME:gsub("%s+", " ")
+        NAME = NAME:gsub("^C%.%s*", "Chroma ")
+        NAME = NAME:gsub("^Travelers ", "Traveler's ")
+        NAME = NAME:gsub("^Vampires ", "Vampire's ")
+        NAME = NAME:gsub("^Winters ", "Winter's ")
+        NAME = NAME:gsub("^Hallows ", "Hallow's ")
+        return NAME
+    end
 
-local function NORMALIZE_LOOKUP_NAME(NAME)
-    return string.lower(NORMALIZE_DISPLAY_NAME(NAME))
-end
+    local function NORMALIZE_LOOKUP_NAME(NAME)
+        return string.lower(NORMALIZE_DISPLAY_NAME(NAME))
+    end
 
--- ==============================
--- ПАРСИНГ ЧИСЕЛ / ДИАПАЗОНОВ
--- ==============================
-local function PARSE_NUMBER(TEXT)
-    if type(TEXT) == "number" then return TEXT end
-    if type(TEXT) ~= "string" then return nil end
-    TEXT = TEXT:gsub(",", ""):gsub("%s+", "")
-    return tonumber(TEXT)
-end
+    -- ==============================
+    -- ПАРСИНГ ЧИСЕЛ / ДИАПАЗОНОВ
+    -- ==============================
+    local function PARSE_NUMBER(TEXT)
+        if type(TEXT) == "number" then return TEXT end
+        if type(TEXT) ~= "string" then return nil end
+        TEXT = TEXT:gsub(",", ""):gsub("%s+", "")
+        return tonumber(TEXT)
+    end
 
--- "3,450 - 3,500" -> 3450, 3500
-local function PARSE_RANGE(TEXT)
-    if type(TEXT) ~= "string" then return nil, nil end
-    local CLEAN = TEXT:gsub(",", "")
-    local A, B = CLEAN:match("(%d+%.?%d*)%s*%-%s*(%d+%.?%d*)")
-    if A and B then
-        A, B = tonumber(A), tonumber(B)
+    -- "3,450 - 3,500" -> 3450, 3500
+    local function PARSE_RANGE(TEXT)
+        if type(TEXT) ~= "string" then return nil, nil end
+        local CLEAN = TEXT:gsub(",", "")
+        local A, B = CLEAN:match("(%d+%.?%d*)%s*%-%s*(%d+%.?%d*)")
         if A and B then
-            if A > B then A, B = B, A end
-            return A, B
+            A, B = tonumber(A), tonumber(B)
+            if A and B then
+                if A > B then A, B = B, A end
+                return A, B
+            end
+        end
+        return nil, nil
+    end
+
+    -- "x4 T1 Legendaries" -> 4, 1, "legendaries"
+    local function PARSE_MULTIPLIER_VALUE(TEXT)
+        if type(TEXT) ~= "string" then return nil end
+        local MULT, TIER, CAT_WORD = TEXT:match("^[xX](%d+)%s+[tT](%d+)%s+(%a+)")
+        if not MULT then return nil end
+        local CAT = string.lower(CAT_WORD)
+        -- "Legendaries" -> "legendaries", "Rares" -> "rares" и т.д.
+        if not TAG_TO_CATEGORY[CAT] then
+            -- уже во множественном числе — проверяем по списку категорий
+            local FOUND = false
+            for _, C in ipairs(CATEGORIES) do
+                if C == CAT then FOUND = true break end
+            end
+            if not FOUND then return nil end
+        else
+            CAT = TAG_TO_CATEGORY[CAT]
+        end
+        return tonumber(MULT), tonumber(TIER), CAT
+    end
+
+    -- ==============================
+    -- ДА��НЫЕ
+    -- ==============================
+    -- ITEM_DB[lookupName][category] = entry
+    -- entry = { valueText, valueNum, minV, maxV, demand, status, range, rise }
+    local ITEM_DB = {}
+    -- VARIANT_DB[baseName][category] = { {suffix="Gun", entry=...}, ... }
+    local VARIANT_DB = {}
+    -- TIER_STATS[category][tierNum] = { min = X, max = Y } (только числовые валюты)
+    local TIER_STATS = {}
+    local DATA_LOADED = false
+    local LOADED_CATEGORIES = 0
+    local PARSED_COUNT = 0
+
+    local function TRANSLATE_STABILITY_STATUS(STATUS)
+        if not STATUS or STATUS == "" or STATUS == "N/A" then return nil end
+        STATUS = STATUS:gsub("^%s+", ""):gsub("%s+$", "")
+        if STATUS == "" then return nil end
+        return STABILITY_STATUS_MAP[STATUS] or STATUS
+    end
+
+    local function RECORD_TIER_STAT(CATEGORY, TIER_TEXT, VALUE_NUM)
+        if not VALUE_NUM or type(TIER_TEXT) ~= "string" then return end
+        local TIER_NUM = tonumber(TIER_TEXT:match("[tT]ier%s+(%d+)"))
+        if not TIER_NUM then return end
+        TIER_STATS[CATEGORY] = TIER_STATS[CATEGORY] or {}
+        local STAT = TIER_STATS[CATEGORY][TIER_NUM]
+        if not STAT then
+            TIER_STATS[CATEGORY][TIER_NUM] = { min = VALUE_NUM, max = VALUE_NUM }
+        else
+            if VALUE_NUM < STAT.min then STAT.min = VALUE_NUM end
+            if VALUE_NUM > STAT.max then STAT.max = VALUE_NUM end
         end
     end
-    return nil, nil
-end
 
--- "x4 T1 Legendaries" -> 4, 1, "legendaries"
-local function PARSE_MULTIPLIER_VALUE(TEXT)
-    if type(TEXT) ~= "string" then return nil end
-    local MULT, TIER, CAT_WORD = TEXT:match("^[xX](%d+)%s+[tT](%d+)%s+(%a+)")
-    if not MULT then return nil end
-    local CAT = string.lower(CAT_WORD)
-    -- "Legendaries" -> "legendaries", "Rares" -> "rares" и т.д.
-    if not TAG_TO_CATEGORY[CAT] then
-        -- уже во множественном числе — проверяем по списку категорий
-        local FOUND = false
-        for _, C in ipairs(CATEGORIES) do
-            if C == CAT then FOUND = true break end
+    local function FETCH_CATEGORY(CATEGORY)
+        local OK, RESPONSE = pcall(function()
+            return game:HttpGet(BASE_API_URL .. CATEGORY)
+        end)
+        if not OK or not RESPONSE or RESPONSE == "" then return nil end
+        local PARSED_OK, DATA = pcall(function()
+            return HttpService:JSONDecode(RESPONSE)
+        end)
+        if not PARSED_OK or type(DATA) ~= "table" or type(DATA.items) ~= "table" then
+            return nil
         end
-        if not FOUND then return nil end
-    else
-        CAT = TAG_TO_CATEGORY[CAT]
+        return DATA.items
     end
-    return tonumber(MULT), tonumber(TIER), CAT
-end
 
--- ==============================
--- ДАННЫЕ
--- ==============================
--- ITEM_DB[lookupName][category] = entry
--- entry = { valueText, valueNum, minV, maxV, demand, status, range, rise }
-local ITEM_DB = {}
--- VARIANT_DB[baseName][category] = { {suffix="Gun", entry=...}, ... }
-local VARIANT_DB = {}
--- TIER_STATS[category][tierNum] = { min = X, max = Y } (только числовые валюты)
-local TIER_STATS = {}
-local DATA_LOADED = false
-local LOADED_CATEGORIES = 0
-local PARSED_COUNT = 0
+    local function REFRESH_VALUES_FROM_SITE()
+        ITEM_DB = {}
+        VARIANT_DB = {}
+        TIER_STATS = {}
+        LOADED_CATEGORIES = 0
+        PARSED_COUNT = 0
 
-local function TRANSLATE_STABILITY_STATUS(STATUS)
-    if not STATUS or STATUS == "" or STATUS == "N/A" then return nil end
-    STATUS = STATUS:gsub("^%s+", ""):gsub("%s+$", "")
-    if STATUS == "" then return nil end
-    return STABILITY_STATUS_MAP[STATUS] or STATUS
-end
+        for _, CATEGORY in ipairs(CATEGORIES) do
+            local ITEMS = FETCH_CATEGORY(CATEGORY)
+            if not ITEMS then
+                task.wait(1)
+                ITEMS = FETCH_CATEGORY(CATEGORY) -- одна повторная попытка
+            end
+            if ITEMS then
+                LOADED_CATEGORIES = LOADED_CATEGORIES + 1
+                for _, ITEM in ipairs(ITEMS) do
+                    if type(ITEM) == "table" and type(ITEM.name) == "string" and ITEM.name ~= "" then
+                        local LOOKUP = NORMALIZE_LOOKUP_NAME(ITEM.name)
+                        local VALUE_TEXT = ITEM.value
+                        local VALUE_NUM = PARSE_NUMBER(VALUE_TEXT)
+                        local RANGE_MIN, RANGE_MAX = PARSE_RANGE(ITEM.rangedValue)
 
-local function RECORD_TIER_STAT(CATEGORY, TIER_TEXT, VALUE_NUM)
-    if not VALUE_NUM or type(TIER_TEXT) ~= "string" then return end
-    local TIER_NUM = tonumber(TIER_TEXT:match("[tT]ier%s+(%d+)"))
-    if not TIER_NUM then return end
-    TIER_STATS[CATEGORY] = TIER_STATS[CATEGORY] or {}
-    local STAT = TIER_STATS[CATEGORY][TIER_NUM]
-    if not STAT then
-        TIER_STATS[CATEGORY][TIER_NUM] = { min = VALUE_NUM, max = VALUE_NUM }
-    else
-        if VALUE_NUM < STAT.min then STAT.min = VALUE_NUM end
-        if VALUE_NUM > STAT.max then STAT.max = VALUE_NUM end
+                        RECORD_TIER_STAT(CATEGORY, ITEM.tier, VALUE_NUM)
+
+                        local ENTRY = {
+                            valueText = (type(VALUE_TEXT) == "string" and VALUE_TEXT ~= "") and VALUE_TEXT or nil,
+                            valueNum = VALUE_NUM,
+                            rangeMin = RANGE_MIN,
+                            rangeMax = RANGE_MAX,
+                            rangeText = (ITEM.rangedValue and ITEM.rangedValue ~= "N/A" and ITEM.rangedValue ~= "") and ITEM.rangedValue or nil,
+                            demand = PARSE_NUMBER(ITEM.demand),
+                            rise = PARSE_NUMBER(ITEM.riseChance),
+                            status = TRANSLATE_STABILITY_STATUS(ITEM.stability),
+                            category = CATEGORY,
+                        }
+
+                        ITEM_DB[LOOKUP] = ITEM_DB[LOOKUP] or {}
+                        -- не перезаписываем, если имя внутри категории повторяется
+                        if not ITEM_DB[LOOKUP][CATEGORY] then
+                            ITEM_DB[LOOKUP][CATEGORY] = ENTRY
+                            PARSED_COUNT = PARSED_COUNT + 1
+                        end
+
+                        -- Индекс вариантов: "arctic (gun)" -> base "arctic", suffix "Gun"
+                        local BASE, SUFFIX = LOOKUP:match("^(.-)%s*%((%a+)%)$")
+                        if BASE and SUFFIX and (SUFFIX == "gun" or SUFFIX == "knife") then
+                            VARIANT_DB[BASE] = VARIANT_DB[BASE] or {}
+                            VARIANT_DB[BASE][CATEGORY] = VARIANT_DB[BASE][CATEGORY] or {}
+                            table.insert(VARIANT_DB[BASE][CATEGORY], {
+                                suffix = (SUFFIX == "gun") and "Gun" or "Knife",
+                                entry = ENTRY,
+                            })
+                        end
+                    end
+                end
+            end
+        end
+
+        DATA_LOADED = PARSED_COUNT > 0
+        return PARSED_COUNT
     end
-end
 
-local function FETCH_CATEGORY(CATEGORY)
-    local OK, RESPONSE = pcall(function()
-        return game:HttpGet(BASE_API_URL .. CATEGORY)
-    end)
-    if not OK or not RESPONSE or RESPONSE == "" then return nil end
-    local PARSED_OK, DATA = pcall(function()
-        return HttpService:JSONDecode(RESPONSE)
-    end)
-    if not PARSED_OK or type(DATA) ~= "table" or type(DATA.items) ~= "table" then
+    -- ==============================
+    -- РАСЧЁТ МИН/МАКС ВАЛЮТЫ ЗАПИСИ
+    -- ==============================
+    -- Возвращает: displayText, minV, maxV, nominalV (может быть nil если N/A)
+    local function RESOLVE_ENTRY_VALUE(ENTRY)
+        -- 1) Обычная числовая валюта
+        if ENTRY.valueNum then
+            local MIN_V, MAX_V = ENTRY.valueNum, ENTRY.valueNum
+            -- Диапазон (Underpaid For / Overpaid For / Fluctuating и т.д.)
+            if ENTRY.rangeMin and ENTRY.rangeMax then
+                MIN_V = math.min(MIN_V, ENTRY.rangeMin)
+                MAX_V = math.max(MAX_V, ENTRY.rangeMax)
+            end
+            return tostring(ENTRY.valueNum), MIN_V, MAX_V, ENTRY.valueNum
+        end
+
+        -- 2) Валюта вида "x4 T1 Legendaries"
+        if ENTRY.valueText then
+            local MULT, TIER, CAT = PARSE_MULTIPLIER_VALUE(ENTRY.valueText)
+            if MULT and TIER and CAT and TIER_STATS[CAT] and TIER_STATS[CAT][TIER] then
+                local STAT = TIER_STATS[CAT][TIER]
+                local MIN_V = MULT * STAT.min
+                local MAX_V = MULT * STAT.max
+                local NOMINAL = math.floor((MIN_V + MAX_V) / 2 + 0.5)
+                local DISPLAY = ENTRY.valueText
+                if MIN_V ~= MAX_V then
+                    DISPLAY = DISPLAY .. " (~" .. MIN_V .. "-" .. MAX_V .. ")"
+                else
+                    DISPLAY = DISPLAY .. " (~" .. MIN_V .. ")"
+                end
+                return DISPLAY, MIN_V, MAX_V, NOMINAL
+            end
+            -- Просто текст (например "N/A") — валюты нет
+            return ENTRY.valueText, 0, 0, nil
+        end
+
+        return "N/A", 0, 0, nil
+    end
+
+    -- ==============================
+    -- ПОИСК ПРЕДМЕТА (с учётом категории и вариантов Gun/Knife)
+    -- ==============================
+    local function GET_LOOKUP_NAME(ITEM_NAME, IS_CHROMA)
+        local LOOKUP_NAME = ITEM_NAME
+        if IS_CHROMA and not ITEM_NAME:match("^Chroma%s+") and not ITEM_NAME:match("^C%.%s*") then
+            LOOKUP_NAME = "Chroma " .. ITEM_NAME
+        end
+        return NORMALIZE_LOOKUP_NAME(LOOKUP_NAME)
+    end
+
+    -- Возвращает список записей { {suffix=nil|"Gun"|"Knife", entry=...}, ... }
+    -- Приоритет: сперва категория из тега GUI, затем ЕДИНЫЙ проход по
+    -- приоритету категорий, где точное имя и варианты Gun/Knife проверяются
+    -- на КАЖДОМ шаге. Это чинит случаи вроде Arctic: "Arctic (Gun/Knife)" в
+    -- legendaries теперь выигрывает у пустого "Arctic" (N/A) в untradables.
+    local function FIND_ITEM_ENTRIES(ITEM_NAME, IS_CHROMA, PREFERRED_CATEGORY)
+        local LOOKUP = GET_LOOKUP_NAME(ITEM_NAME, IS_CHROMA)
+        local BY_CATEGORY = ITEM_DB[LOOKUP]
+        local VARIANTS = VARIANT_DB[LOOKUP]
+        if not BY_CATEGORY and not VARIANTS then return nil end
+
+        -- 1) Категория из тега редкости в GUI — самый надёжный признак
+        if PREFERRED_CATEGORY then
+            if BY_CATEGORY and BY_CATEGORY[PREFERRED_CATEGORY] then
+                return { { suffix = nil, entry = BY_CATEGORY[PREFERRED_CATEGORY] } }
+            end
+            if VARIANTS and VARIANTS[PREFERRED_CATEGORY] then
+                return VARIANTS[PREFERRED_CATEGORY]
+            end
+        end
+
+        -- 2) Единый проход по приоритету категорий (варианты Gun/Knife
+        -- проверяются наравне с точным именем на каждом шаге)
+        for _, CATEGORY in ipairs(CATEGORIES) do
+            if BY_CATEGORY and BY_CATEGORY[CATEGORY] then
+                return { { suffix = nil, entry = BY_CATEGORY[CATEGORY] } }
+            end
+            if VARIANTS and VARIANTS[CATEGORY] then
+                return VARIANTS[CATEGORY]
+            end
+        end
+
         return nil
     end
-    return DATA.items
-end
 
-local function REFRESH_VALUES_FROM_SITE()
-    ITEM_DB = {}
-    VARIANT_DB = {}
-    TIER_STATS = {}
-    LOADED_CATEGORIES = 0
-    PARSED_COUNT = 0
-
-    for _, CATEGORY in ipairs(CATEGORIES) do
-        local ITEMS = FETCH_CATEGORY(CATEGORY)
-        if not ITEMS then
-            task.wait(1)
-            ITEMS = FETCH_CATEGORY(CATEGORY) -- одна повторная попытка
+    -- ==============================
+    -- ЧТЕНИЕ ТЕГА РЕДКОСТИ ИЗ GUI
+    -- ==============================
+    local function GET_PREFERRED_CATEGORY(ITEM_FRAME)
+        local TAGS = ITEM_FRAME:FindFirstChild("Tags")
+        if not TAGS then return nil end
+        for _, TAG in ipairs(TAGS:GetChildren()) do
+            if TAG:IsA("GuiObject") and TAG.Visible then
+                local CATEGORY = TAG_TO_CATEGORY[string.lower(TAG.Name)]
+                if CATEGORY and CATEGORY ~= "chromas" then
+                    return CATEGORY
+                end
+            end
         end
-        if ITEMS then
-            LOADED_CATEGORIES = LOADED_CATEGORIES + 1
-            for _, ITEM in ipairs(ITEMS) do
-                if type(ITEM) == "table" and type(ITEM.name) == "string" and ITEM.name ~= "" then
-                    local LOOKUP = NORMALIZE_LOOKUP_NAME(ITEM.name)
-                    local VALUE_TEXT = ITEM.value
-                    local VALUE_NUM = PARSE_NUMBER(VALUE_TEXT)
-                    local RANGE_MIN, RANGE_MAX = PARSE_RANGE(ITEM.rangedValue)
+        return nil
+    end
 
-                    RECORD_TIER_STAT(CATEGORY, ITEM.tier, VALUE_NUM)
+    local function GET_STABILITY_COLOR(STATUS)
+        if STATUS and stabilityColors[STATUS] then
+            return stabilityColors[STATUS]
+        end
+        return stabilityColors["Unknown"]
+    end
 
-                    local ENTRY = {
-                        valueText = (type(VALUE_TEXT) == "string" and VALUE_TEXT ~= "") and VALUE_TEXT or nil,
-                        valueNum = VALUE_NUM,
-                        rangeMin = RANGE_MIN,
-                        rangeMax = RANGE_MAX,
-                        rangeText = (ITEM.rangedValue and ITEM.rangedValue ~= "N/A" and ITEM.rangedValue ~= "") and ITEM.rangedValue or nil,
-                        demand = PARSE_NUMBER(ITEM.demand),
-                        rise = PARSE_NUMBER(ITEM.riseChance),
-                        status = TRANSLATE_STABILITY_STATUS(ITEM.stability),
-                        category = CATEGORY,
-                    }
+    local function GET_STABILITY_ARROW(STATUS)
+        if STATUS and stabilityArrows[STATUS] then
+            return stabilityArrows[STATUS]
+        end
+        return stabilityArrows["Unknown"]
+    end
 
-                    ITEM_DB[LOOKUP] = ITEM_DB[LOOKUP] or {}
-                    -- не перезаписываем, если имя внутри категории повторяется
-                    if not ITEM_DB[LOOKUP][CATEGORY] then
-                        ITEM_DB[LOOKUP][CATEGORY] = ENTRY
-                        PARSED_COUNT = PARSED_COUNT + 1
-                    end
+    -- ==============================
+    -- UI
+    -- ==============================
+    local function CREATE_INFO_LABEL(PARENT)
+        local infoLabel = Instance.new("TextLabel")
+        infoLabel.Name = "InfoLabel"
+        -- Центрируем по середине скина через AnchorPoint: раньше позиция
+        -- задавалась фиксированным смещением сверху (0.15), из-за чего в
+        -- трейде на телефоне (другие пропорции слотов) панель уезжала вверх
+        infoLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+        infoLabel.Size = UDim2.new(1, 0, 0.45, 0)
+        infoLabel.Position = UDim2.new(0.5, 0, 0.42, 0)
+        infoLabel.BackgroundTransparency = 0.5
+        infoLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        infoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        -- TextScaled + ограничитель: на телефоне текст масштабируется под
+        -- размер слота и не остаётся микроскопическим, на ПК ограничен
+        -- максимумом, чтобы не вылезать за рамки
+        infoLabel.TextScaled = true
+        infoLabel.TextWrapped = true
+        infoLabel.Font = Enum.Font.GothamBold
+        infoLabel.RichText = true
+        local SIZE_CONSTRAINT = Instance.new("UITextSizeConstraint")
+        SIZE_CONSTRAINT.MinTextSize = IS_MOBILE and 9 or 8
+        SIZE_CONSTRAINT.MaxTextSize = IS_MOBILE and 14 or 12
+        SIZE_CONSTRAINT.Parent = infoLabel
+        infoLabel.Parent = PARENT
+        return infoLabel
+    end
 
-                    -- Индекс вариантов: "arctic (gun)" -> base "arctic", suffix "Gun"
-                    local BASE, SUFFIX = LOOKUP:match("^(.-)%s*%((%a+)%)$")
-                    if BASE and SUFFIX and (SUFFIX == "gun" or SUFFIX == "knife") then
-                        VARIANT_DB[BASE] = VARIANT_DB[BASE] or {}
-                        VARIANT_DB[BASE][CATEGORY] = VARIANT_DB[BASE][CATEGORY] or {}
-                        table.insert(VARIANT_DB[BASE][CATEGORY], {
-                            suffix = (SUFFIX == "gun") and "Gun" or "Knife",
-                            entry = ENTRY,
-                        })
-                    end
+    local function BUILD_STABILITY_DISPLAY(STATUS, RANGE)
+        if not STATUS then
+            local color = stabilityColors["Unknown"]
+            local r, g, b = math.floor(color.R * 255), math.floor(color.G * 255), math.floor(color.B * 255)
+            return string.format('<font color="rgb(%d,%d,%d)">Unknown ~</font>', r, g, b)
+        end
+
+        local color = GET_STABILITY_COLOR(STATUS)
+        local r, g, b = math.floor(color.R * 255), math.floor(color.G * 255), math.floor(color.B * 255)
+        local arrow = GET_STABILITY_ARROW(STATUS)
+
+        if STATUS == "Stable" then
+            return string.format('<font color="rgb(%d,%d,%d)">%s %s</font>', r, g, b, STATUS, arrow)
+        else
+            local displayText = STATUS .. " " .. arrow
+            if RANGE and RANGE ~= "" then
+                displayText = displayText .. ", " .. RANGE
+            end
+            return string.format('<font color="rgb(%d,%d,%d)">%s</font>', r, g, b, displayText)
+        end
+    end
+
+    local function CLEAR_ITEM_LABELS(ITEM_FRAME)
+        local INFO_LABEL = ITEM_FRAME:FindFirstChild("InfoLabel")
+        if INFO_LABEL then INFO_LABEL:Destroy() end
+        local VALUE_LABEL = ITEM_FRAME:FindFirstChild("ValueLabel")
+        if VALUE_LABEL then VALUE_LABEL:Destroy() end
+        local DEMAND_LABEL = ITEM_FRAME:FindFirstChild("DemandLabel")
+        if DEMAND_LABEL then DEMAND_LABEL:Destroy() end
+        local STABILITY_LABEL = ITEM_FRAME:FindFirstChild("StabilityLabel")
+        if STABILITY_LABEL then STABILITY_LABEL:Destroy() end
+    end
+
+    local function PARSE_ITEM_AMOUNT(AMOUNT_TEXT)
+        if not AMOUNT_TEXT or AMOUNT_TEXT == "" then return 1 end
+        local AMOUNT_NUM = tonumber(string.match(AMOUNT_TEXT, "^x(%d+)$"))
+        if AMOUNT_NUM then return AMOUNT_NUM end
+        return 1
+    end
+
+    local function GET_ITEM_UI_DATA(ITEM_FRAME)
+        local ITEM_NAME_OBJ = ITEM_FRAME:FindFirstChild("ItemName")
+        if not ITEM_NAME_OBJ then return nil end
+        local ITEM_NAME_LBL = ITEM_NAME_OBJ:FindFirstChild("Label")
+        if not ITEM_NAME_LBL or ITEM_NAME_LBL.Text == "" then return nil end
+        local AMOUNT = 1
+        local AMOUNT_CONT = ITEM_FRAME:FindFirstChild("Container")
+        if AMOUNT_CONT then
+            local AMOUNT_LBL = AMOUNT_CONT:FindFirstChild("Amount")
+            if AMOUNT_LBL then AMOUNT = PARSE_ITEM_AMOUNT(AMOUNT_LBL.Text) end
+        end
+        local IS_CHROMA = false
+        local TAGS = ITEM_FRAME:FindFirstChild("Tags")
+        if TAGS then
+            local CHROMA_TAG = TAGS:FindFirstChild("Chroma")
+            if CHROMA_TAG then IS_CHROMA = CHROMA_TAG.Visible end
+        end
+        return ITEM_NAME_LBL.Text, AMOUNT, IS_CHROMA
+    end
+
+    -- Возвращает: nominal, minV, maxV (все уже умножены на количество)
+    local function UPDATE_ITEM_DISPLAY(ITEM_FRAME)
+        if not ITEM_FRAME or not ITEM_FRAME:IsA("GuiObject") then return 0, 0, 0 end
+        if not ITEM_FRAME.Visible then CLEAR_ITEM_LABELS(ITEM_FRAME); return 0, 0, 0 end
+        local ITEM_NAME, AMOUNT, IS_CHROMA = GET_ITEM_UI_DATA(ITEM_FRAME)
+        if not ITEM_NAME then CLEAR_ITEM_LABELS(ITEM_FRAME); return 0, 0, 0 end
+
+        local PREFERRED_CATEGORY = GET_PREFERRED_CATEGORY(ITEM_FRAME)
+        local ENTRIES = FIND_ITEM_ENTRIES(ITEM_NAME, IS_CHROMA, PREFERRED_CATEGORY)
+        if not ENTRIES or #ENTRIES == 0 then CLEAR_ITEM_LABELS(ITEM_FRAME); return 0, 0, 0 end
+
+        -- Агрегируем варианты (обычно 1 запись; для Gun/Knife может быть 2)
+        local TOTAL_MIN, TOTAL_MAX, TOTAL_NOMINAL = nil, nil, nil
+        local VALUE_PARTS = {}
+        local FIRST_ENTRY = ENTRIES[1].entry
+
+        for _, ITEM in ipairs(ENTRIES) do
+            local DISPLAY, MIN_V, MAX_V, NOMINAL = RESOLVE_ENTRY_VALUE(ITEM.entry)
+            if ITEM.suffix then
+                table.insert(VALUE_PARTS, ITEM.suffix .. ": " .. DISPLAY)
+            else
+                table.insert(VALUE_PARTS, DISPLAY)
+            end
+            if NOMINAL then
+                TOTAL_MIN = math.min(TOTAL_MIN or MIN_V, MIN_V)
+                TOTAL_MAX = math.max(TOTAL_MAX or MAX_V, MAX_V)
+                TOTAL_NOMINAL = math.max(TOTAL_NOMINAL or NOMINAL, NOMINAL)
+            end
+        end
+
+        TOTAL_MIN = TOTAL_MIN or 0
+        TOTAL_MAX = TOTAL_MAX or 0
+        TOTAL_NOMINAL = TOTAL_NOMINAL or 0
+
+        local INFO_LABEL = ITEM_FRAME:FindFirstChild("InfoLabel")
+        if not INFO_LABEL then INFO_LABEL = CREATE_INFO_LABEL(ITEM_FRAME) end
+
+        local VALUE_LINE = "Value: " .. table.concat(VALUE_PARTS, " / ")
+        if AMOUNT > 1 and TOTAL_NOMINAL > 0 then
+            VALUE_LINE = VALUE_LINE .. " (x" .. AMOUNT .. " = " .. (TOTAL_NOMINAL * AMOUNT) .. ")"
+        end
+
+        local DEMAND_LINE = "Demand: " .. (FIRST_ENTRY.demand or "N/A")
+        if FIRST_ENTRY.rise ~= nil then
+            DEMAND_LINE = DEMAND_LINE .. ", " .. FIRST_ENTRY.rise .. "%"
+        end
+
+        local STABILITY_LINE = BUILD_STABILITY_DISPLAY(FIRST_ENTRY.status, FIRST_ENTRY.rangeText)
+
+        INFO_LABEL.Text = VALUE_LINE .. "\n" .. DEMAND_LINE .. "\n" .. STABILITY_LINE
+
+        return TOTAL_NOMINAL * AMOUNT, TOTAL_MIN * AMOUNT, TOTAL_MAX * AMOUNT
+    end
+
+    local function HOOK_ITEM_FRAME(ITEM_FRAME, UPDATE_CALLBACK)
+        if not ITEM_FRAME or ITEM_FRAME:GetAttribute("TradeHelperHooked") then return end
+        ITEM_FRAME:SetAttribute("TradeHelperHooked", true)
+        ITEM_FRAME:GetPropertyChangedSignal("Visible"):Connect(UPDATE_CALLBACK)
+        local ITEM_NAME_OBJ = ITEM_FRAME:FindFirstChild("ItemName")
+        if ITEM_NAME_OBJ then
+            local ITEM_NAME_LBL = ITEM_NAME_OBJ:FindFirstChild("Label")
+            if ITEM_NAME_LBL then ITEM_NAME_LBL:GetPropertyChangedSignal("Text"):Connect(UPDATE_CALLBACK) end
+        end
+        local AMOUNT_CONT = ITEM_FRAME:FindFirstChild("Container")
+        if AMOUNT_CONT then
+            local AMOUNT_LBL = AMOUNT_CONT:FindFirstChild("Amount")
+            if AMOUNT_LBL then AMOUNT_LBL:GetPropertyChangedSignal("Text"):Connect(UPDATE_CALLBACK) end
+        end
+        local TAGS = ITEM_FRAME:FindFirstChild("Tags")
+        if TAGS then
+            for _, TAG in ipairs(TAGS:GetChildren()) do
+                if TAG:IsA("GuiObject") then
+                    TAG:GetPropertyChangedSignal("Visible"):Connect(UPDATE_CALLBACK)
                 end
             end
         end
     end
 
-    DATA_LOADED = PARSED_COUNT > 0
-    return PARSED_COUNT
-end
+    local function SETUP_TRADE_GUI(TG)
+        local CONT = TG:WaitForChild("Container", 5)
+        if not CONT then return end
+        local TR = CONT:WaitForChild("Trade", 5)
+        if not TR then return end
+        local YO = TR:WaitForChild("YourOffer", 5)
+        if not YO then return end
+        local YOC = YO:WaitForChild("Container", 5)
+        if not YOC then return end
+        local YOT = YO:WaitForChild("Title", 5)
+        if not YOT then return end
+        local TO = TR:WaitForChild("TheirOffer", 5)
+        if not TO then return end
+        local TOC = TO:WaitForChild("Container", 5)
+        if not TOC then return end
+        local TOT = TO:WaitForChild("Title", 5)
+        if not TOT then return end
 
--- ==============================
--- РАСЧЁТ МИН/МАКС ВАЛЮТЫ ЗАПИСИ
--- ==============================
--- Возвращает: displayText, minV, maxV, nominalV (может быть nil если N/A)
-local function RESOLVE_ENTRY_VALUE(ENTRY)
-    -- 1) Обычная числовая валюта
-    if ENTRY.valueNum then
-        local MIN_V, MAX_V = ENTRY.valueNum, ENTRY.valueNum
-        -- Диапазон (Underpaid For / Overpaid For / Fluctuating и т.д.)
-        if ENTRY.rangeMin and ENTRY.rangeMax then
-            MIN_V = math.min(MIN_V, ENTRY.rangeMin)
-            MAX_V = math.max(MAX_V, ENTRY.rangeMax)
-        end
-        return tostring(ENTRY.valueNum), MIN_V, MAX_V, ENTRY.valueNum
-    end
-
-    -- 2) Валюта вида "x4 T1 Legendaries"
-    if ENTRY.valueText then
-        local MULT, TIER, CAT = PARSE_MULTIPLIER_VALUE(ENTRY.valueText)
-        if MULT and TIER and CAT and TIER_STATS[CAT] and TIER_STATS[CAT][TIER] then
-            local STAT = TIER_STATS[CAT][TIER]
-            local MIN_V = MULT * STAT.min
-            local MAX_V = MULT * STAT.max
-            local NOMINAL = math.floor((MIN_V + MAX_V) / 2 + 0.5)
-            local DISPLAY = ENTRY.valueText
-            if MIN_V ~= MAX_V then
-                DISPLAY = DISPLAY .. " (~" .. MIN_V .. "-" .. MAX_V .. ")"
-            else
-                DISPLAY = DISPLAY .. " (~" .. MIN_V .. ")"
-            end
-            return DISPLAY, MIN_V, MAX_V, NOMINAL
-        end
-        -- Просто текст (например "N/A") — валюты нет
-        return ENTRY.valueText, 0, 0, nil
-    end
-
-    return "N/A", 0, 0, nil
-end
-
--- ==============================
--- ПОИСК ПРЕДМЕТА (с учётом категории и вариантов Gun/Knife)
--- ==============================
-local function GET_LOOKUP_NAME(ITEM_NAME, IS_CHROMA)
-    local LOOKUP_NAME = ITEM_NAME
-    if IS_CHROMA and not ITEM_NAME:match("^Chroma%s+") and not ITEM_NAME:match("^C%.%s*") then
-        LOOKUP_NAME = "Chroma " .. ITEM_NAME
-    end
-    return NORMALIZE_LOOKUP_NAME(LOOKUP_NAME)
-end
-
--- Возвращает список записей { {suffix=nil|"Gun"|"Knife", entry=...}, ... }
--- Приоритет: сперва категория из тега GUI, затем ЕДИНЫЙ проход по
--- приоритету категорий, где точное имя и варианты Gun/Knife проверяются
--- на КАЖДОМ шаге. Это чинит случаи вроде Arctic: "Arctic (Gun/Knife)" в
--- legendaries теперь выигрывает у пустого "Arctic" (N/A) в untradables.
-local function FIND_ITEM_ENTRIES(ITEM_NAME, IS_CHROMA, PREFERRED_CATEGORY)
-    local LOOKUP = GET_LOOKUP_NAME(ITEM_NAME, IS_CHROMA)
-    local BY_CATEGORY = ITEM_DB[LOOKUP]
-    local VARIANTS = VARIANT_DB[LOOKUP]
-    if not BY_CATEGORY and not VARIANTS then return nil end
-
-    -- 1) Категория из тега редкости в GUI — самый надёжный признак
-    if PREFERRED_CATEGORY then
-        if BY_CATEGORY and BY_CATEGORY[PREFERRED_CATEGORY] then
-            return { { suffix = nil, entry = BY_CATEGORY[PREFERRED_CATEGORY] } }
-        end
-        if VARIANTS and VARIANTS[PREFERRED_CATEGORY] then
-            return VARIANTS[PREFERRED_CATEGORY]
-        end
-    end
-
-    -- 2) Единый проход по приоритету категорий (варианты Gun/Knife
-    -- проверяются наравне с точным именем на каждом шаге)
-    for _, CATEGORY in ipairs(CATEGORIES) do
-        if BY_CATEGORY and BY_CATEGORY[CATEGORY] then
-            return { { suffix = nil, entry = BY_CATEGORY[CATEGORY] } }
-        end
-        if VARIANTS and VARIANTS[CATEGORY] then
-            return VARIANTS[CATEGORY]
-        end
-    end
-
-    return nil
-end
-
--- ==============================
--- ЧТЕНИЕ ТЕГА РЕДКОСТИ ИЗ GUI
--- ==============================
-local function GET_PREFERRED_CATEGORY(ITEM_FRAME)
-    local TAGS = ITEM_FRAME:FindFirstChild("Tags")
-    if not TAGS then return nil end
-    for _, TAG in ipairs(TAGS:GetChildren()) do
-        if TAG:IsA("GuiObject") and TAG.Visible then
-            local CATEGORY = TAG_TO_CATEGORY[string.lower(TAG.Name)]
-            if CATEGORY and CATEGORY ~= "chromas" then
-                return CATEGORY
+        -- Автомасштабирование заголовков: длинный текст (Min/Max профит,
+        -- диапазоны) уменьшается, чтобы всегда помещаться в рамки
+        for _, TITLE in ipairs({ YOT, TOT }) do
+            if TITLE:IsA("TextLabel") then
+                TITLE.TextScaled = true
+                TITLE.TextWrapped = true
+                local CONSTRAINT = TITLE:FindFirstChild("TradeHelperTextConstraint")
+                if not CONSTRAINT then
+                    CONSTRAINT = Instance.new("UITextSizeConstraint")
+                    CONSTRAINT.Name = "TradeHelperTextConstraint"
+                CONSTRAINT.MinTextSize = IS_MOBILE and 10 or 12
+                CONSTRAINT.MaxTextSize = IS_MOBILE and 18 or 22
+                    CONSTRAINT.Parent = TITLE
+                end
             end
         end
-    end
-    return nil
-end
 
-local function GET_STABILITY_COLOR(STATUS)
-    if STATUS and stabilityColors[STATUS] then
-        return stabilityColors[STATUS]
-    end
-    return stabilityColors["Unknown"]
-end
-
-local function GET_STABILITY_ARROW(STATUS)
-    if STATUS and stabilityArrows[STATUS] then
-        return stabilityArrows[STATUS]
-    end
-    return stabilityArrows["Unknown"]
-end
-
--- ==============================
--- UI
--- ==============================
-local function CREATE_INFO_LABEL(PARENT)
-    local infoLabel = Instance.new("TextLabel")
-    infoLabel.Name = "InfoLabel"
-    infoLabel.Size = UDim2.new(1, 0, 0.43, 0)
-    infoLabel.Position = UDim2.new(0, 0, 0.15, 0)
-    infoLabel.BackgroundTransparency = 0.5
-    infoLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    infoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    infoLabel.TextScaled = false
-    infoLabel.TextWrapped = true
-    infoLabel.Font = Enum.Font.GothamBold
-    infoLabel.TextSize = 11
-    infoLabel.RichText = true
-    infoLabel.Parent = PARENT
-    return infoLabel
-end
-
-local function BUILD_STABILITY_DISPLAY(STATUS, RANGE)
-    if not STATUS then
-        local color = stabilityColors["Unknown"]
-        local r, g, b = math.floor(color.R * 255), math.floor(color.G * 255), math.floor(color.B * 255)
-        return string.format('<font color="rgb(%d,%d,%d)">Unknown ~</font>', r, g, b)
-    end
-
-    local color = GET_STABILITY_COLOR(STATUS)
-    local r, g, b = math.floor(color.R * 255), math.floor(color.G * 255), math.floor(color.B * 255)
-    local arrow = GET_STABILITY_ARROW(STATUS)
-
-    if STATUS == "Stable" then
-        return string.format('<font color="rgb(%d,%d,%d)">%s %s</font>', r, g, b, STATUS, arrow)
-    else
-        local displayText = STATUS .. " " .. arrow
-        if RANGE and RANGE ~= "" then
-            displayText = displayText .. ", " .. RANGE
+        local function SUM_OFFER(CONTAINER)
+            local TOTAL, TOTAL_MIN, TOTAL_MAX = 0, 0, 0
+            for I = 1, 4 do
+                local NEW_ITEM = CONTAINER:FindFirstChild("NewItem" .. I)
+                if NEW_ITEM then
+                    local V, MIN_V, MAX_V = UPDATE_ITEM_DISPLAY(NEW_ITEM)
+                    TOTAL = TOTAL + V
+                    TOTAL_MIN = TOTAL_MIN + MIN_V
+                    TOTAL_MAX = TOTAL_MAX + MAX_V
+                end
+            end
+            return TOTAL, TOTAL_MIN, TOTAL_MAX
         end
-        return string.format('<font color="rgb(%d,%d,%d)">%s</font>', r, g, b, displayText)
-    end
-end
 
-local function CLEAR_ITEM_LABELS(ITEM_FRAME)
-    local INFO_LABEL = ITEM_FRAME:FindFirstChild("InfoLabel")
-    if INFO_LABEL then INFO_LABEL:Destroy() end
-    local VALUE_LABEL = ITEM_FRAME:FindFirstChild("ValueLabel")
-    if VALUE_LABEL then VALUE_LABEL:Destroy() end
-    local DEMAND_LABEL = ITEM_FRAME:FindFirstChild("DemandLabel")
-    if DEMAND_LABEL then DEMAND_LABEL:Destroy() end
-    local STABILITY_LABEL = ITEM_FRAME:FindFirstChild("StabilityLabel")
-    if STABILITY_LABEL then STABILITY_LABEL:Destroy() end
-end
-
-local function PARSE_ITEM_AMOUNT(AMOUNT_TEXT)
-    if not AMOUNT_TEXT or AMOUNT_TEXT == "" then return 1 end
-    local AMOUNT_NUM = tonumber(string.match(AMOUNT_TEXT, "^x(%d+)$"))
-    if AMOUNT_NUM then return AMOUNT_NUM end
-    return 1
-end
-
-local function GET_ITEM_UI_DATA(ITEM_FRAME)
-    local ITEM_NAME_OBJ = ITEM_FRAME:FindFirstChild("ItemName")
-    if not ITEM_NAME_OBJ then return nil end
-    local ITEM_NAME_LBL = ITEM_NAME_OBJ:FindFirstChild("Label")
-    if not ITEM_NAME_LBL or ITEM_NAME_LBL.Text == "" then return nil end
-    local AMOUNT = 1
-    local AMOUNT_CONT = ITEM_FRAME:FindFirstChild("Container")
-    if AMOUNT_CONT then
-        local AMOUNT_LBL = AMOUNT_CONT:FindFirstChild("Amount")
-        if AMOUNT_LBL then AMOUNT = PARSE_ITEM_AMOUNT(AMOUNT_LBL.Text) end
-    end
-    local IS_CHROMA = false
-    local TAGS = ITEM_FRAME:FindFirstChild("Tags")
-    if TAGS then
-        local CHROMA_TAG = TAGS:FindFirstChild("Chroma")
-        if CHROMA_TAG then IS_CHROMA = CHROMA_TAG.Visible end
-    end
-    return ITEM_NAME_LBL.Text, AMOUNT, IS_CHROMA
-end
-
--- Возвращает: nominal, minV, maxV (все уже умножены на количество)
-local function UPDATE_ITEM_DISPLAY(ITEM_FRAME)
-    if not ITEM_FRAME or not ITEM_FRAME:IsA("GuiObject") then return 0, 0, 0 end
-    if not ITEM_FRAME.Visible then CLEAR_ITEM_LABELS(ITEM_FRAME); return 0, 0, 0 end
-    local ITEM_NAME, AMOUNT, IS_CHROMA = GET_ITEM_UI_DATA(ITEM_FRAME)
-    if not ITEM_NAME then CLEAR_ITEM_LABELS(ITEM_FRAME); return 0, 0, 0 end
-
-    local PREFERRED_CATEGORY = GET_PREFERRED_CATEGORY(ITEM_FRAME)
-    local ENTRIES = FIND_ITEM_ENTRIES(ITEM_NAME, IS_CHROMA, PREFERRED_CATEGORY)
-    if not ENTRIES or #ENTRIES == 0 then CLEAR_ITEM_LABELS(ITEM_FRAME); return 0, 0, 0 end
-
-    -- Агрегируем варианты (обычно 1 запись; для Gun/Knife может быть 2)
-    local TOTAL_MIN, TOTAL_MAX, TOTAL_NOMINAL = nil, nil, nil
-    local VALUE_PARTS = {}
-    local FIRST_ENTRY = ENTRIES[1].entry
-
-    for _, ITEM in ipairs(ENTRIES) do
-        local DISPLAY, MIN_V, MAX_V, NOMINAL = RESOLVE_ENTRY_VALUE(ITEM.entry)
-        if ITEM.suffix then
-            table.insert(VALUE_PARTS, ITEM.suffix .. ": " .. DISPLAY)
-        else
-            table.insert(VALUE_PARTS, DISPLAY)
+        local function FORMAT_TOTAL(TOTAL, TOTAL_MIN, TOTAL_MAX)
+            local TEXT = "Profit: " .. TOTAL
+            if TOTAL_MIN ~= TOTAL_MAX then
+                TEXT = TEXT .. " (" .. TOTAL_MIN .. "-" .. TOTAL_MAX .. ")"
+            end
+            return TEXT
         end
-        if NOMINAL then
-            TOTAL_MIN = math.min(TOTAL_MIN or MIN_V, MIN_V)
-            TOTAL_MAX = math.max(TOTAL_MAX or MAX_V, MAX_V)
-            TOTAL_NOMINAL = math.max(TOTAL_NOMINAL or NOMINAL, NOMINAL)
-        end
-    end
 
-    TOTAL_MIN = TOTAL_MIN or 0
-    TOTAL_MAX = TOTAL_MAX or 0
-    TOTAL_NOMINAL = TOTAL_NOMINAL or 0
+        local function UPDATE_OFFER_VALUES()
+            local YOUR_TOTAL, YOUR_MIN, YOUR_MAX = SUM_OFFER(YOC)
+            local THEIR_TOTAL, THEIR_MIN, THEIR_MAX = SUM_OFFER(TOC)
 
-    local INFO_LABEL = ITEM_FRAME:FindFirstChild("InfoLabel")
-    if not INFO_LABEL then INFO_LABEL = CREATE_INFO_LABEL(ITEM_FRAME) end
+            YOT.Text = FORMAT_TOTAL(YOUR_TOTAL, YOUR_MIN, YOUR_MAX)
+            TOT.Text = FORMAT_TOTAL(THEIR_TOTAL, THEIR_MIN, THEIR_MAX)
 
-    local VALUE_LINE = "Value: " .. table.concat(VALUE_PARTS, " / ")
-    if AMOUNT > 1 and TOTAL_NOMINAL > 0 then
-        VALUE_LINE = VALUE_LINE .. " (x" .. AMOUNT .. " = " .. (TOTAL_NOMINAL * AMOUNT) .. ")"
-    end
-
-    local DEMAND_LINE = "Demand: " .. (FIRST_ENTRY.demand or "N/A")
-    if FIRST_ENTRY.rise ~= nil then
-        DEMAND_LINE = DEMAND_LINE .. ", " .. FIRST_ENTRY.rise .. "%"
-    end
-
-    local STABILITY_LINE = BUILD_STABILITY_DISPLAY(FIRST_ENTRY.status, FIRST_ENTRY.rangeText)
-
-    INFO_LABEL.Text = VALUE_LINE .. "\n" .. DEMAND_LINE .. "\n" .. STABILITY_LINE
-
-    return TOTAL_NOMINAL * AMOUNT, TOTAL_MIN * AMOUNT, TOTAL_MAX * AMOUNT
-end
-
-local function HOOK_ITEM_FRAME(ITEM_FRAME, UPDATE_CALLBACK)
-    if not ITEM_FRAME or ITEM_FRAME:GetAttribute("TradeHelperHooked") then return end
-    ITEM_FRAME:SetAttribute("TradeHelperHooked", true)
-    ITEM_FRAME:GetPropertyChangedSignal("Visible"):Connect(UPDATE_CALLBACK)
-    local ITEM_NAME_OBJ = ITEM_FRAME:FindFirstChild("ItemName")
-    if ITEM_NAME_OBJ then
-        local ITEM_NAME_LBL = ITEM_NAME_OBJ:FindFirstChild("Label")
-        if ITEM_NAME_LBL then ITEM_NAME_LBL:GetPropertyChangedSignal("Text"):Connect(UPDATE_CALLBACK) end
-    end
-    local AMOUNT_CONT = ITEM_FRAME:FindFirstChild("Container")
-    if AMOUNT_CONT then
-        local AMOUNT_LBL = AMOUNT_CONT:FindFirstChild("Amount")
-        if AMOUNT_LBL then AMOUNT_LBL:GetPropertyChangedSignal("Text"):Connect(UPDATE_CALLBACK) end
-    end
-    local TAGS = ITEM_FRAME:FindFirstChild("Tags")
-    if TAGS then
-        for _, TAG in ipairs(TAGS:GetChildren()) do
-            if TAG:IsA("GuiObject") then
-                TAG:GetPropertyChangedSignal("Visible"):Connect(UPDATE_CALLBACK)
+            if THEIR_TOTAL > 0 then
+                local PROFIT = THEIR_TOTAL - YOUR_TOTAL
+                -- Минимальный профит: их минимум минус ваш максимум
+                -- (худший сценарий: их скины по нижней границе, ваши — по верхней)
+                local MIN_PROFIT = THEIR_MIN - YOUR_MAX
+                -- Максимальный профит: их максимум минус ваш минимум
+                local MAX_PROFIT = THEIR_MAX - YOUR_MIN
+                local PROFIT_TEXT = " | Profit: " .. PROFIT
+                if MIN_PROFIT ~= PROFIT or MAX_PROFIT ~= PROFIT then
+                    PROFIT_TEXT = PROFIT_TEXT .. " (" .. MIN_PROFIT .. ".." .. MAX_PROFIT .. ")"
+                end
+                YOT.Text = YOT.Text .. PROFIT_TEXT
             end
         end
-    end
-end
 
-local function SETUP_TRADE_GUI(TG)
-    local CONT = TG:WaitForChild("Container", 5)
-    if not CONT then return end
-    local TR = CONT:WaitForChild("Trade", 5)
-    if not TR then return end
-    local YO = TR:WaitForChild("YourOffer", 5)
-    if not YO then return end
-    local YOC = YO:WaitForChild("Container", 5)
-    if not YOC then return end
-    local YOT = YO:WaitForChild("Title", 5)
-    if not YOT then return end
-    local TO = TR:WaitForChild("TheirOffer", 5)
-    if not TO then return end
-    local TOC = TO:WaitForChild("Container", 5)
-    if not TOC then return end
-    local TOT = TO:WaitForChild("Title", 5)
-    if not TOT then return end
-
-    -- Автомасштабирование заголовков: длинный текст (Min/Max профит,
-    -- диапазоны) уменьшается, чтобы всегда помещаться в рамки
-    for _, TITLE in ipairs({ YOT, TOT }) do
-        if TITLE:IsA("TextLabel") then
-            TITLE.TextScaled = true
-            TITLE.TextWrapped = true
-            local CONSTRAINT = TITLE:FindFirstChild("TradeHelperTextConstraint")
-            if not CONSTRAINT then
-                CONSTRAINT = Instance.new("UITextSizeConstraint")
-                CONSTRAINT.Name = "TradeHelperTextConstraint"
-                CONSTRAINT.MinTextSize = 12
-                CONSTRAINT.MaxTextSize = 22
-                CONSTRAINT.Parent = TITLE
-            end
-        end
-    end
-
-    local function SUM_OFFER(CONTAINER)
-        local TOTAL, TOTAL_MIN, TOTAL_MAX = 0, 0, 0
+        UPDATE_OFFER_VALUES()
         for I = 1, 4 do
-            local NEW_ITEM = CONTAINER:FindFirstChild("NewItem" .. I)
-            if NEW_ITEM then
-                local V, MIN_V, MAX_V = UPDATE_ITEM_DISPLAY(NEW_ITEM)
-                TOTAL = TOTAL + V
-                TOTAL_MIN = TOTAL_MIN + MIN_V
-                TOTAL_MAX = TOTAL_MAX + MAX_V
+            local NEW_ITEM = YOC:FindFirstChild("NewItem" .. I)
+            if NEW_ITEM then HOOK_ITEM_FRAME(NEW_ITEM, UPDATE_OFFER_VALUES) end
+        end
+        for I = 1, 4 do
+            local NEW_ITEM = TOC:FindFirstChild("NewItem" .. I)
+            if NEW_ITEM then HOOK_ITEM_FRAME(NEW_ITEM, UPDATE_OFFER_VALUES) end
+        end
+    end
+
+    -- Слоты офферов (YourOffer/TheirOffer) обрабатываются отдельно
+    -- в SETUP_TRADE_GUI, поэтому их пропускаем. Всё остальное — включая
+    -- панель выбора своих скинов ВНУТРИ трейд-окна, свой инвентарь и
+    -- профили других игроков — хукаем здесь.
+    local function IS_TRADE_OBJECT(OBJ)
+        local CURRENT = OBJ
+        local IN_TRADE_GUI = false
+        local IN_OFFER = false
+        while CURRENT and CURRENT ~= PG do
+            local LOWER_NAME = string.lower(CURRENT.Name)
+            if string.find(LOWER_NAME, "tradegui", 1, true) then
+                IN_TRADE_GUI = true
             end
-        end
-        return TOTAL, TOTAL_MIN, TOTAL_MAX
-    end
-
-    local function FORMAT_TOTAL(TOTAL, TOTAL_MIN, TOTAL_MAX)
-        local TEXT = "Profit: " .. TOTAL
-        if TOTAL_MIN ~= TOTAL_MAX then
-            TEXT = TEXT .. " (" .. TOTAL_MIN .. "-" .. TOTAL_MAX .. ")"
-        end
-        return TEXT
-    end
-
-    local function UPDATE_OFFER_VALUES()
-        local YOUR_TOTAL, YOUR_MIN, YOUR_MAX = SUM_OFFER(YOC)
-        local THEIR_TOTAL, THEIR_MIN, THEIR_MAX = SUM_OFFER(TOC)
-
-        YOT.Text = FORMAT_TOTAL(YOUR_TOTAL, YOUR_MIN, YOUR_MAX)
-        TOT.Text = FORMAT_TOTAL(THEIR_TOTAL, THEIR_MIN, THEIR_MAX)
-
-        if THEIR_TOTAL > 0 then
-            local PROFIT = THEIR_TOTAL - YOUR_TOTAL
-            -- Минимальный профит: их минимум минус ваш максимум
-            -- (худший сценарий: их скины по нижней границе, ваши — по верхней)
-            local MIN_PROFIT = THEIR_MIN - YOUR_MAX
-            -- Максимальный профит: их максимум минус ваш минимум
-            local MAX_PROFIT = THEIR_MAX - YOUR_MIN
-            local PROFIT_TEXT = " | Profit: " .. PROFIT
-            if MIN_PROFIT ~= PROFIT or MAX_PROFIT ~= PROFIT then
-                PROFIT_TEXT = PROFIT_TEXT .. " (" .. MIN_PROFIT .. ".." .. MAX_PROFIT .. ")"
+            if LOWER_NAME == "youroffer" or LOWER_NAME == "theiroffer" then
+                IN_OFFER = true
             end
-            YOT.Text = YOT.Text .. PROFIT_TEXT
+            CURRENT = CURRENT.Parent
         end
+        -- Пропускаем только слоты офферов внутри трейд-окна
+        return IN_TRADE_GUI and IN_OFFER
     end
 
-    UPDATE_OFFER_VALUES()
-    for I = 1, 4 do
-        local NEW_ITEM = YOC:FindFirstChild("NewItem" .. I)
-        if NEW_ITEM then HOOK_ITEM_FRAME(NEW_ITEM, UPDATE_OFFER_VALUES) end
+    local function TRY_SETUP_INVENTORY_ITEM(OBJ)
+        if not OBJ or not OBJ:IsA("GuiObject") then return end
+        -- Фрейм предмета определяем по структуре: ItemName -> Label
+        local ITEM_NAME_OBJ = OBJ:FindFirstChild("ItemName")
+        if not ITEM_NAME_OBJ then return end
+        local ITEM_NAME_LBL = ITEM_NAME_OBJ:FindFirstChild("Label")
+        if not ITEM_NAME_LBL then return end
+        if IS_TRADE_OBJECT(OBJ) then return end
+        local function UPDATE_THIS_ITEM() UPDATE_ITEM_DISPLAY(OBJ) end
+        HOOK_ITEM_FRAME(OBJ, UPDATE_THIS_ITEM)
+        UPDATE_THIS_ITEM()
     end
-    for I = 1, 4 do
-        local NEW_ITEM = TOC:FindFirstChild("NewItem" .. I)
-        if NEW_ITEM then HOOK_ITEM_FRAME(NEW_ITEM, UPDATE_OFFER_VALUES) end
-    end
-end
 
--- Слоты офферов (YourOffer/TheirOffer) обрабатываются отдельно
--- в SETUP_TRADE_GUI, поэтому их пропускаем. Всё остальное — включая
--- панель выбора своих скинов ВНУТРИ трейд-окна, свой инвентарь и
--- профили других игроков — хукаем здесь.
-local function IS_TRADE_OBJECT(OBJ)
-    local CURRENT = OBJ
-    local IN_TRADE_GUI = false
-    local IN_OFFER = false
-    while CURRENT and CURRENT ~= PG do
-        local LOWER_NAME = string.lower(CURRENT.Name)
-        if string.find(LOWER_NAME, "tradegui", 1, true) then
-            IN_TRADE_GUI = true
-        end
-        if LOWER_NAME == "youroffer" or LOWER_NAME == "theiroffer" then
-            IN_OFFER = true
-        end
-        CURRENT = CURRENT.Parent
-    end
-    -- Пропускаем только слоты офферов внутри трейд-окна
-    return IN_TRADE_GUI and IN_OFFER
-end
-
-local function TRY_SETUP_INVENTORY_ITEM(OBJ)
-    if not OBJ or not OBJ:IsA("GuiObject") then return end
-    -- Фрейм предмета определяем по структуре: ItemName -> Label
-    local ITEM_NAME_OBJ = OBJ:FindFirstChild("ItemName")
-    if not ITEM_NAME_OBJ then return end
-    local ITEM_NAME_LBL = ITEM_NAME_OBJ:FindFirstChild("Label")
-    if not ITEM_NAME_LBL then return end
-    if IS_TRADE_OBJECT(OBJ) then return end
-    local function UPDATE_THIS_ITEM() UPDATE_ITEM_DISPLAY(OBJ) end
-    HOOK_ITEM_FRAME(OBJ, UPDATE_THIS_ITEM)
-    UPDATE_THIS_ITEM()
-end
-
-local function SETUP_INVENTORY_GUI()
-    for _, OBJ in ipairs(PG:GetDescendants()) do
-        TRY_SETUP_INVENTORY_ITEM(OBJ)
-    end
-    PG.DescendantAdded:Connect(function(OBJ)
-        -- В профилях игроков ItemName/Label создаются ПОСЛЕ самого фрейма,
-        -- поэтому пробуем и сам объект, и его предков с небольшой задержкой
-        task.defer(function()
+    local function SETUP_INVENTORY_GUI()
+        for _, OBJ in ipairs(PG:GetDescendants()) do
             TRY_SETUP_INVENTORY_ITEM(OBJ)
-            if OBJ.Name == "Label" and OBJ.Parent and OBJ.Parent.Name == "ItemName" then
-                TRY_SETUP_INVENTORY_ITEM(OBJ.Parent.Parent)
-            elseif OBJ.Name == "ItemName" then
-                TRY_SETUP_INVENTORY_ITEM(OBJ.Parent)
-            end
+        end
+        PG.DescendantAdded:Connect(function(OBJ)
+            -- В профилях игроков ItemName/Label создаются ПОСЛЕ самого фрейма,
+            -- поэтому пробуем и сам объект, и его предков с небольшой задержкой
+            task.defer(function()
+                TRY_SETUP_INVENTORY_ITEM(OBJ)
+                if OBJ.Name == "Label" and OBJ.Parent and OBJ.Parent.Name == "ItemName" then
+                    TRY_SETUP_INVENTORY_ITEM(OBJ.Parent.Parent)
+                elseif OBJ.Name == "ItemName" then
+                    TRY_SETUP_INVENTORY_ITEM(OBJ.Parent)
+                end
+            end)
         end)
-    end)
-end
+    end
 
--- ==============================
--- ЗАГРУЗКА ДАННЫХ (с повторными попытками)
--- ==============================
-for ATTEMPT = 1, 3 do
-    PARSED_COUNT = REFRESH_VALUES_FROM_SITE()
-    if PARSED_COUNT > 0 then break end
-    task.wait(2)
-end
+    -- ==============================
+    -- ЗАГРУЗКА ДАННЫХ (с повторными попытками)
+    -- ==============================
+    for ATTEMPT = 1, 3 do
+        PARSED_COUNT = REFRESH_VALUES_FROM_SITE()
+        if PARSED_COUNT > 0 then break end
+        task.wait(2)
+    end
 
--- ==============================
--- НАСТРОЙКА ТРЕЙД GUI
--- ==============================
-local TG = PG:WaitForChild("TradeGUI", 5)
-if TG then SETUP_TRADE_GUI(TG) end
-local TG_PHONE = PG:WaitForChild("TradeGUI_Phone", 5)
-if TG_PHONE then SETUP_TRADE_GUI(TG_PHONE) end
-SETUP_INVENTORY_GUI()
+    -- ==============================
+    -- НАСТРОЙКА ТРЕЙД GUI
+    -- ==============================
+    local TG = PG:WaitForChild("TradeGUI", 5)
+    if TG then SETUP_TRADE_GUI(TG) end
+    local TG_PHONE = PG:WaitForChild("TradeGUI_Phone", 5)
+    if TG_PHONE then SETUP_TRADE_GUI(TG_PHONE) end
+    SETUP_INVENTORY_GUI()
 
--- ==============================
--- УВЕДОМЛЕНИЕ
--- ==============================
-local NotificationBindable = Instance.new("BindableFunction")
-NotificationBindable.OnInvoke = function() end
+    -- ==============================
+    -- УВЕДОМЛЕНИЕ
+    -- ==============================
+    local NotificationBindable = Instance.new("BindableFunction")
+    NotificationBindable.OnInvoke = function() end
 
-game.StarterGui:SetCore("SendNotification", {
-    Title = "Trade Helper 5.0";
-    Text = DATA_LOADED
-        and ("Loaded: " .. PARSED_COUNT .. " items, " .. LOADED_CATEGORIES .. "/" .. #CATEGORIES .. " categories")
-        or "Error: failed to load values!";
-    Icon = "";
-    Duration = 5;
-    Button1 = "Close";
-    Callback = NotificationBindable;
-})
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "Trade Helper 5.1";
+        Text = DATA_LOADED
+            and ("Загружено: " .. PARSED_COUNT .. " предметов, " .. LOADED_CATEGORIES .. "/" .. #CATEGORIES .. " категорий")
+            or "Ошибка: не удалось загрузить валюты с сайта!";
+        Icon = "";
+        Duration = 5;
+        Button1 = "OK";
+        Callback = NotificationBindable;
+    })

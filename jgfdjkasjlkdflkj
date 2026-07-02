@@ -1,379 +1,51 @@
-local ancientValues = {
-	["Corrupt"] = 600,
-    ["Gingerscope"] = 18500,
-    ["Traveler's Axe"] = 7800,
-    ["Harvester"] = 310,
-    ["Celestial"] = 1725,
-    ["Icepiercer"] = 210,
-    ["Vampire's Axe"] = 925,
-    ["Icebreaker"] = 100,
-    ["Swirly Axe"] = 52,
-    ["Batwing"] = 50,
-    ["Elderwood Scythe"] = 50,
-    ["Hallowscythe"] = 35,
-    ["Logchopper"] = 20,
-    ["Icewing"] = 15,
-	["Traveler's Gun"] = 4150,
-	["Evergun"] = 3550,
-	["Turkey"] = 1850,
-	["Evergreen"] = 2700,
-	["Blossom"] = 1100,
-	["Sakura"] = 1090,
-	["Vampire's Gun"] = 1700,
-	["Constellation"] = 2900,
-	["Bauble"] = 925,
-	["Darkshot"] = 1200,
-	["Darksword"] = 1180,
-    ["Bloom"] = 255,
-    ["Flora"] = 265,
-    ["Treat"] = 215,
-    ["Heart Wand"] = 220,
-    ["Sweet"] = 210,
-	["Bat"] = 155,
-    ["Alienbeam"] = 1750,
-    ["Raygun"] = 1125,
-    ["Sunrise"] = 750,
-    ["Sunset"] = 375,
-    ["Snowcannon"] = 625,
-    ["Snow Dagger"] = 185,
-    ["Blizzard"] = 150,
-    ["Snowstorm"] = 150,
-    ["Xenoknife"] = 195,
-    ["Xenoshot"] = 195,
-	["Rainbow Gun"] = 300,
-	["Rainbow"] = 290,
-	["Candy"] = 105,
-	["Heartblade"] = 95,
-	["Flowerwood Gun"] = 205,
-	["Ocean"] = 170,
-	["Soul"] = 315,
-	["Spirit"] = 305,
-	["Flowerwood"] = 200,
-	["Waves"] = 165,
-	["Borealis"] = 105,
-	["Sugar"] = 45,
-	["Australis"] = 100,
-	["Luger"] = 50,
-	["Red Luger"] = 45,
-	["Swirly Gun"] = 35,
-	["Iceblaster"] = 45,
-	["Candleflame"] = 45,
-	["Elderwood Blade"] = 45,
-	["Makeshift"] = 45,
-	["Watergun"] = 125,
-	["Pearl"] = 50,
-	["Pearlshine"] = 55,
-	["Darkbringer"] = 45,
-	["Elderwood Revolver"] = 45,
-	["Phantom"] = 45,
-	["Spectre"] = 45,
-	["Lightbringer"] = 40,
-    ["Ornament"] = 35,
-	["Swirly Blade"] = 23,
-	["Green Luger"] = 30,
-	["Hallowgun"] = 27,
-	["Laser"] = 27,
-	["Icebeam"] = 25,
-	["Iceflake"] = 23,
-	["Plasmabeam"] = 25,
-	["Plasmablade"] = 25,
-	["Amerilaser"] = 25,
-	["Blaster"] = 20,
-	["Nightblade"] = 22,
-	["Old Glory"] = 18,
-	["Nebula"] = 15,
-	["Shark"] = 23,
-	["Virtual"] = 17,
-	["Cookiecane"] = 20,
-	["Gingermint"] = 20,
-	["Gemstone"] = 17,
-	["Clockwork"] = 10,
-	["Eternalcane"] = 18,
-	["Ginger Luger"] = 20,
-	["Lugercane"] = 18,
-	["Pixel"] = 20,
-	["Slasher"] = 20,
-	["Gingerblade"] = 18,
-	["Heat"] = 10,
-	["BattleAxe II"] = 18,
-	["Deathshard"] = 15,
-	["Minty"] = 20,
-	["Tides"] = 10,
-	["Fang"] = 10,
-	["Jinglegun"] = 17,
-	["Spider"] = 10,
-	["Chill"] = 10,
-	["Bioblade"] = 10,
-	["Vampire's Edge"] = 15,
-	["Pumpking"] = 7,
-	["Frostsaber"] = 10,
-	["BattleAxe"] = 12,
-	["Flames"] = 5,
-	["Hallow's Edge"] = 8,
-	["Ice Dragon"] = 7,
-	["Ice Shard"] = 7,
-	["Winter's Edge"] = 5,
-	["Xmas"] = 8,
-	["Hallow's Blade"] = 8,
-	["Handsaw"] = 8,
-	["Eternal"] = 8,
-	["Eternal II"] = 8,
-	["Eternal III"] = 10,
-	["Eternal IV"] = 10,
-	["Boneblade"] = 7,
-	["Ghostblade"] = 7,
-	["Eggblade"] = 5,
-	["Frostbite"] = 7,
-	["Prismatic"] = 7,
-	["Saw"] = 7,
-	["Snowflake"] = 5,
-	["Peppermint"] = 4,
-	["Cookieblade"] = 3,
-	["Blue Seer"] = 3,
-	["Purple Seer"] = 3,
-	["Red Seer"] = 3,
-	["Seer"] = 3,
-	["Orange Seer"] = 2,
-	["Yellow Seer"] = 2,
-	["Chroma Traveler's Gun"] = 225000,
-    ["Chroma Evergun"] = 104000,
-    ["Chroma Evergreen"] = 71000,
-    ["Chroma Vampire's Gun"] = 38000,
-    ["Chroma Bauble"] = 47500,
-    ["Chroma Constellation"] = 37000,
-    ["Chroma AlienBeam"] = 33000,
-    ["Chroma Raygun"] = 17500,
-    ["Chroma Treat"] = 9000,
-    ["Chroma Sweet"] = 7500,
-    ["Chroma Heart Wand"] = 6000,
-    ["Chroma Blizzard"] = 10000,
-    ["Chroma Sunrise"] = 11000,
-    ["Chroma Snowstorm"] = 6750,
-    ["Chroma Snowcannon"] = 9250,
-    ["Chroma Snow Dagger"] = 3900,
-    ["Chroma Sunset"] = 6500,
-    ["Chroma Ornament"] = 3300,
-    ["Chroma Watergun"] = 3400,
-    ["Chroma Darkbringer"] = 90,
-    ["Chroma Lightbringer"] = 85,
-    ["Chroma Luger"] = 57,
-    ["Chroma Laser"] = 50,
-    ["Chroma Candleflame"] = 60,
-    ["Chroma Elderwood Blade"] = 55,
-    ["Chroma Swirly Gun"] = 55,
-    ["Chroma Cookiecane"] = 50,
-    ["Chroma Deathshard"] = 45,
-    ["Chroma Heat"] = 38,
-    ["Chroma Shark"] = 43,
-    ["Chroma Slasher"] = 45,
-    ["Chroma Tides"] = 35,
-    ["Chroma Fang"] = 42,
-    ["Chroma Gemstone"] = 38,
-    ["Chroma Gingerblade"] = 37,
-    ["Chroma Seer"] = 37,
-    ["Chroma Boneblade"] = 30,
-    ["Chroma Saw"] = 37,
-	["Ghost"] = 10,
-    ["America"] = 7,
-    ["Blood"] = 8,
-    ["Phaser"] = 5,
-    ["Shadow"] = 6,
-    ["Prince"] = 6,
-    ["Cowboy"] = 4,
-    ["Golden"] = 4,
-    ["Splitter"] = 3,
-    ["JD"] = 35,
-    ["Latte Gun"] = 130,
-    ["Latte Knife"] = 130,
-    ["Cotton Candy"] = 40,
-    ["Beach"] = 30,
-    ["Cavern Knife"] = 7,
-    ["Witched"] = 3,
-    ["Skulls"] = 7,
-    ["Icedriller"] = 5,
-    ["Spectral Knife"] = 18,
-    ["Vampire Gun"] = 12,
-    ["Green Elite"] = 3,
-    ["Santa's Spirit"] = 3,
-    ["Aurora Gun"] = 10,
-    ["Ginger Gun"] = 6,
-    ["Blue Elite"] = 3,
-    ["Ghost Knife"] = 5,
-    ["Traveler Gun"] = 17,
-    ["Broken"] = 7,
-    ["Santa's Magic"] = 3,
-    ["Red Scratch"] = 4,
-    ["Red Fire"] = 3,
-    ["Arctic Gun"] = 2,
-    ["Icecracker"] = 2,
-    ["Nightsky"] = 5,
-    ["Blue Scratch"] = 2,
-    ["Ghost Gun"] = 2,
-    ["Rupture"] = 1,
-    ["Tree Gun"] = 1,
-    ["Tree Knife"] = 1,
-    ["Web"] = 1,
-    ["Chromatic Knife"] = 1,
-    ["Cursed Knife"] = 1,
-    ["Frostfade Knife"] = 1,
-    ["Vampire Knife"] = 1,
-    ["Cavern Gun"] = 1,
-    ["Cane"] = 725,
-    ["Silent Night"] = 50,
-    ["Aurora"] = 13,
-    ["Icicles"] = 10,
-    ["Dungeon"] = 30,
-    ["Candy Swirl"] = 5,
-    ["Toxic"] = 7,
-    ["Vampire"] = 8,
-    ["Snakebite"] = 3,
-    ["Monster"] = 5,
-    ["Magma"] = 5,
-    ["Bats"] = 3,
-    ["Green Marble"] = 3,
-    ["Jack"] = 3,
-    ["Orange Marble"] = 2,
-    ["Floral"] = 5,
-    ["Starry"] = 8,
-    ["Darkknife"] = 7,
-    ["Gingerbread"] = 1,
-    ["Mummy"] = 1,
-	["Zombified Knife"] = 65,
-    ["Bones"] = 70,
-    ["Gingerbread Knife"] = 50,
-    ["Brains"] = 40,
-    ["Sweater Knife"] = 50,
-    ["Branches"] = 25,
-    ["Frozen Gun"] = 22,
-    ["Lights Gun"] = 20,
-    ["Mummy Gun"] = 20,
-    ["Zombie Gun"] = 20,
-    ["Potion Knife"] = 17,
-    ["Zombified Gun"] = 15,
-    ["Potion"] = 6,
-    ["Void"] = 8,
-    ["Frozen Knife"] = 5,
-    ["Gingerbread Gun"] = 5,
-    ["Zombie Knife"] = 5,
-    ["Lights Knife"] = 4,
-    ["Mummy Knife"] = 4,
-    ["Moons"] = 4,
-    ["Webs"] = 3,
-    ["Holly Gun"] = 3,
-    ["Wolf"] = 3,
-    ["Nutcracker"] = 1,
-    ["Snowman Gun"] = 1,
-    ["Snowman Knife"] = 1,
-    ["Snowy"] = 1,
-    ["Wrapped Gun"] = 1,
-    ["Wrapped Knife"] = 1,
-    ["Gifted"] = 1,
-	["Glitch2"] = 55,
-    ["Glitch1"] = 75,
-    ["Gifts"] = 70,
-    ["Pine"] = 140,
-    ["Sparkle9"] = 35,
-    ["Sparkle8"] = 25,
-    ["Sparkle10"] = 25,
-    ["Ghoulish"] = 25,
-    ["Skool"] = 20,
-    ["Sparkle7"] = 20,
-    ["RIP"] = 18,
-    ["Tailslide"] = 17,
-    ["Coal"] = 15,
-    ["Ollie"] = 15,
-    ["Sidewinder"] = 15,
-    ["Sparkle5"] = 13,
-    ["Elf"] = 13,
-    ["Grave"] = 12,
-    ["CandyCorn"] = 10,
-    ["Sparkle4"] = 8,
-    ["Asteroid"] = 8,
-    ["Euro"] = 8,
-    ["Slime"] = 7,
-    ["Grind"] = 6,
-    ["Haunted"] = 5,
-    ["Combat II"] = 5,
-    ["Prism"] = 4,
-    ["Zombie"] = 4,
-    ["Snowman"] = 3,
-    ["Wrapped"] = 3,
-    ["Neon"] = 3,
-    ["Ecto"] = 3,
-    ["Witch"] = 3,
-    ["Indy"] = 3,
-    ["Hearts"] = 2,
-    ["Tulip"] = 2,
-    ["Goo"] = 2,
-    ["Patrick"] = 2,
-    ["Reptile"] = 2,
-    ["Bunny"] = 1,
-    ["Choco"] = 1,
-    ["Roses"] = 1,
-    ["Alex"] = 1,
-    ["Corl"] = 1,
-    ["Denis"] = 1,
-    ["Ornament1"] = 1,
-    ["Ornament2"] = 1,
-    ["Passion"] = 1,
-    ["Sketchy"] = 1,
-    ["Sub"] = 1,
-    ["Sweetheart"] = 1,
-    ["Valentine"] = 1,
-    ["2015"] = 1,
-    ["Santa"] = 1,
-    ["Infected"] = 1,
-    ["TNL"] = 1,
-	["Zombie Dog"] = 725,
-    ["Blue Pumpkin"] = 160,
-    ["Black Cat"] = 60,
-    ["Dogey"] = 90,
-    ["Red Pumpkin"] = 100,
-    ["Green Pumpkin"] = 60,
-    ["Jetstream"] = 8,
-    ["Purple Pumpkin"] = 12,
-    ["Vampire Bat"] = 12,
-    ["Rudolph"] = 12,
-    ["Eyeball"] = 10,
-    ["Overseer Eye"] = 8,
-    ["Nobledragon"] = 13,
-    ["Pumpkin"] = 25,
-    ["Piggy"] = 20,
-    ["Reindeer"] = 10,
-    ["Fairy"] = 13,
-    ["Seahorsey"] = 13,
-    ["Chilly"] = 12,
-    ["Pengy"] = 12,
-    ["Tankie"] = 8,
-    ["<3"] = 10,
-    ["Mechbug"] = 5,
-    ["UFO"] = 4,
-    ["Deathspeaker"] = 1,
-    ["Phoenix"] = 1,
-    ["Frostbird"] = 1,
-    ["Electro"] = 1,
-    ["Sammy"] = 1,
-    ["Steambird"] = 1,
-    ["Badger"] = 1,
-    ["Ice Phoenix"] = 1,
-    ["Skelly"] = 1,
-    ["Traveller"] = 1,
-    ["Fire Bat"] = 1,
-    ["Fire Cat"] = 1,
-    ["Fire Bear"] = 1,
-    ["Fire Bunny"] = 1,
-    ["Fire Dog"] = 1,
-    ["Fire Fox"] = 1,
-    ["Fire Pig"] = 1,
-    ["Ghosty"] = 1,
-	["Chroma Fire Bunny"] = 7,
-    ["Chroma Fire Cat"] = 7,
-    ["Chroma Fire Dog"] = 7,
-    ["Chroma Fire Fox"] = 7,
-    ["Chroma Fire Bat"] = 7,
-    ["Chroma Fire Pig"] = 7,
-    ["Chroma Fire Bear"] = 7,
+-- ================================================================
+-- Trade Helper 5.0
+-- Загружает данные напрямую из КАЖДОЙ категории сайта:
+-- /api/values/<category> — в отличие от /api/values/all, эти
+-- эндпоинты отдают ПОЛНЫЕ данные:
+--   * текстовые валюты ("x4 T1 Legendaries", "x3 T1 Rares" и т.д.)
+--   * скины с суффиксами "(Gun)" / "(Knife)" (Arctic, Latte, ...)
+--   * дубликаты имён в разных категориях (Laser в Vintages и Godlies)
+-- Новое:
+--   * Min/Max профит по диапазонам валют (Underpaid/Overpaid For и др.)
+--   * Валюты вида "x4 T1 Legendaries" пересчитываются в диапазон
+--     на основе реальных цен Tier 1 предметов той же категории
+--   * Валюты соответствуют своей категории (по тегу редкости в GUI,
+--     иначе — по приоритету категорий)
+-- ================================================================
+
+local BASE_API_URL = "https://update-currency-script.vercel.app/api/values/"
+
+-- Порядок = приоритет при совпадении имён (если категорию не удалось
+-- определить по тегу в GUI)
+local CATEGORIES = {
+    "godlies", "ancients", "uniques", "vintages", "evos", "chromas",
+    "legendaries", "rares", "uncommons", "commons", "pets", "misc", "untradables",
 }
+
+-- Сопоставление тегов редкости из GUI игры с категориями сайта
+local TAG_TO_CATEGORY = {
+    ["godly"] = "godlies",
+    ["ancient"] = "ancients",
+    ["unique"] = "uniques",
+    ["vintage"] = "vintages",
+    ["evo"] = "evos",
+    ["evolved"] = "evos",
+    ["chroma"] = "chromas",
+    ["legendary"] = "legendaries",
+    ["rare"] = "rares",
+    ["uncommon"] = "uncommons",
+    ["common"] = "commons",
+    ["pet"] = "pets",
+    ["misc"] = "misc",
+    ["untradable"] = "untradables",
+}
+
+local LP = game:GetService("Players").LocalPlayer
+local PG = LP:WaitForChild("PlayerGui", 5)
+if not PG then return end
+
+local HttpService = game:GetService("HttpService")
 
 local stabilityColors = {
     ["Stable"] = Color3.fromRGB(10, 248, 28),
@@ -399,430 +71,6 @@ local stabilityArrows = {
     ["Unknown"] = "~",
 }
 
-local stabilityValues = {
-	["Corrupt"] = "Stable",
-    ["Gingerscope"] = "Stable",
-    ["Traveler's Axe"] = "Stable",
-    ["Harvester"] = "Underpaid, 300",
-    ["Celestial"] = "Stable",
-    ["Icepiercer"] = "Underpaid, 200",
-    ["Vampire's Axe"] = "Stable",
-    ["Icebreaker"] = "Stable",
-    ["Swirly Axe"] = "Stable",
-    ["Batwing"] = "Stable",
-    ["Elderwood Scythe"] = "Stable",
-    ["Hallowscythe"] = "Stable",
-    ["Logchopper"] = "Stable",
-    ["Icewing"] = "Unstable, 10-20",
-	["Traveler's Gun"] = "Stable",
-	["Evergun"] = "Stable",
-	["Turkey"] = "Stable",
-	["Evergreen"] = "Stable",
-	["Blossom"] = "Stable",
-	["Sakura"] = "Stable",
-	["Vampire's Gun"] = "Stable",
-	["Constellation"] = "Stable",
-	["Bauble"] = "Stable",
-	["Darkshot"] = "Stable",
-	["Darksword"] = "Stable",
-    ["Bloom"] = "Stable",
-    ["Flora"] = "Stable",
-    ["Treat"] = "Underpaid, 210",
-    ["Heart Wand"] = "Underpaid, 215",
-    ["Sweet"] = "Underpaid, 205",
-	["Bat"] = "Stable",
-    ["Alienbeam"] = "Overpaid, 1900",
-    ["Raygun"] = "Overpaid, 1200",
-    ["Sunrise"] = "Stable",
-    ["Sunset"] = "Stable",
-    ["Snowcannon"] = "Stable",
-    ["Snow Dagger"] = "Stable",
-    ["Blizzard"] = "Stable",
-    ["Snowstorm"] = "Stable",
-    ["Xenoknife"] = "Stable",
-    ["Xenoshot"] = "Stable",
-	["Rainbow Gun"] = "Stable",
-	["Rainbow"] = "Stable",
-	["Candy"] = "Stable",
-	["Heartblade"] = "Stable",
-	["Flowerwood Gun"] = "Stable",
-	["Ocean"] = "Stable",
-	["Soul"] = "Stable",
-	["Spirit"] = "Stable",
-	["Flowerwood"] = "Stable",
-	["Waves"] = "Stable",
-	["Borealis"] = "Stable",
-	["Sugar"] = "Stable",
-	["Australis"] = "Stable",
-	["Luger"] = "Stable",
-	["Red Luger"] = "Stable",
-	["Swirly Gun"] = "Stable",
-	["Iceblaster"] = "Stable",
-	["Candleflame"] = "Stable",
-	["Elderwood Blade"] = "Stable",
-	["Makeshift"] = "Stable",
-	["Watergun"] = "Stable",
-	["Pearl"] = "Stable",
-	["Pearlshine"] = "Stable",
-	["Darkbringer"] = "Stable",
-	["Elderwood Revolver"] = "Stable",
-	["Phantom"] = "Stable",
-	["Spectre"] = "Stable",
-	["Lightbringer"] = "Stable",
-    ["Ornament"] = "Underpaid, 30",
-	["Swirly Blade"] = "Stable",
-	["Green Luger"] = "Stable",
-	["Hallowgun"] = "Stable",
-	["Laser"] = "Stable",
-	["Icebeam"] = "Stable",
-	["Iceflake"] = "Stable",
-	["Plasmabeam"] = "Stable",
-	["Plasmablade"] = "Stable",
-	["Amerilaser"] = "Stable",
-	["Blaster"] = "Stable",
-	["Nightblade"] = "Stable",
-	["Old Glory"] = "Stable",
-	["Nebula"] = "Stable",
-	["Shark"] = "Stable",
-	["Virtual"] = "Stable",
-	["Cookiecane"] = "Stable",
-	["Gingermint"] = "Stable",
-	["Gemstone"] = "Stable",
-	["Clockwork"] = "Stable",
-	["Eternalcane"] = "Stable",
-	["Ginger Luger"] = "Stable",
-	["Lugercane"] = "Stable",
-	["Pixel"] = "Stable",
-	["Slasher"] = "Stable",
-	["Gingerblade"] = "Stable",
-	["Heat"] = "Stable",
-	["BattleAxe II"] = "Stable",
-	["Deathshard"] = "Stable",
-	["Minty"] = "Stable",
-	["Tides"] = "Stable",
-	["Fang"] = "Stable",
-	["Jinglegun"] = "Stable",
-	["Spider"] = "Stable",
-	["Chill"] = "Stable",
-	["Bioblade"] = "Stable",
-	["Vampire's Edge"] = "Stable",
-	["Pumpking"] = "Stable",
-	["Frostsaber"] = "Stable",
-	["BattleAxe"] = "Stable",
-	["Flames"] = "Stable",
-	["Hallow's Edge"] = "Stable",
-	["Ice Dragon"] = "Stable",
-	["Ice Shard"] = "Stable",
-	["Winter's Edge"] = "Stable",
-	["Xmas"] = "Stable",
-	["Hallow's Blade"] = "Stable",
-	["Handsaw"] = "Stable",
-	["Eternal"] = "Stable",
-	["Eternal II"] = "Stable",
-	["Eternal III"] = "Stable",
-	["Eternal IV"] = "Stable",
-	["Boneblade"] = "Stable",
-	["Ghostblade"] = "Stable",
-	["Eggblade"] = "Stable",
-	["Frostbite"] = "Stable",
-	["Prismatic"] = "Stable",
-	["Saw"] = "Stable",
-	["Snowflake"] = "Stable",
-	["Peppermint"] = "Stable",
-	["Cookieblade"] = "Stable",
-	["Blue Seer"] = "Stable",
-	["Purple Seer"] = "Stable",
-	["Red Seer"] = "Stable",
-	["Seer"] = "Stable",
-	["Orange Seer"] = "Stable",
-	["Yellow Seer"] = "Stable",
-	["Chroma Traveler's Gun"] = "Stable",
-    ["Chroma Evergun"] = "Stable",
-    ["Chroma Evergreen"] = "Stable",
-    ["Chroma Vampire's Gun"] = "Stable",
-    ["Chroma Bauble"] = "Stable",
-    ["Chroma Constellation"] = "Stable",
-    ["Chroma AlienBeam"] = "Stable",
-    ["Chroma Raygun"] = "Rising, 1075",
-    ["Chroma Treat"] = "Stable",
-    ["Chroma Sweet"] = "Stable",
-    ["Chroma Heart Wand"] = "Stable",
-    ["Chroma Blizzard"] = "Stable",
-    ["Chroma Sunrise"] = "Stable",
-    ["Chroma Snowstorm"] = "Stable",
-    ["Chroma Snowcannon"] = "Stable",
-    ["Chroma Snow Dagger"] = "Stable",
-    ["Chroma Sunset"] = "Stable",
-    ["Chroma Ornament"] = "Stable",
-    ["Chroma Watergun"] = "Stable",
-    ["Chroma Darkbringer"] = "Stable",
-    ["Chroma Lightbringer"] = "Stable",
-    ["Chroma Luger"] = "Stable",
-    ["Chroma Laser"] = "Stable",
-    ["Chroma Candleflame"] = "Stable",
-    ["Chroma Elderwood Blade"] = "Stable",
-    ["Chroma Swirly Gun"] = "Stable",
-    ["Chroma Cookiecane"] = "Stable",
-    ["Chroma Deathshard"] = "Stable",
-    ["Chroma Heat"] = "Stable",
-    ["Chroma Shark"] = "Stable",
-    ["Chroma Slasher"] = "Stable",
-    ["Chroma Tides"] = "Stable",
-    ["Chroma Fang"] = "Stable",
-    ["Chroma Gemstone"] = "Stable",
-    ["Chroma Gingerblade"] = "Stable",
-    ["Chroma Seer"] = "Stable",
-    ["Chroma Boneblade"] = "Stable",
-    ["Chroma Saw"] = "Stable",
-	["Ghost"] = "Stable",
-    ["America"] = "Stable",
-    ["Blood"] = "Stable",
-    ["Phaser"] = "Stable",
-    ["Shadow"] = "Stable",
-    ["Prince"] = "Stable",
-    ["Cowboy"] = "Stable",
-    ["Golden"] = "Stable",
-    ["Splitter"] = "Stable",
-    ["JD"] = "Unstable, 30-40",
-    ["Latte Gun"] = "Unstable, 125-135",
-    ["Latte Knife"] = "Unstable, 125-135",
-    ["Cotton Candy"] = "Unstable, 35-45",
-    ["Beach"] = "Stable",
-    ["Cavern Knife"] = "Stable",
-    ["Witched"] = "Stable",
-    ["Skulls"] = "Stable",
-    ["Icedriller"] = "Stable",
-    ["Spectral Knife"] = "Stable",
-    ["Vampire Gun"] = "Stable",
-    ["Green Elite"] = "Stable",
-    ["Santa's Spirit"] = "Stable",
-    ["Aurora Gun"] = "Stable",
-    ["Ginger Gun"] = "Stable",
-    ["Blue Elite"] = "Stable",
-    ["Ghost Knife"] = "Stable",
-    ["Traveler Gun"] = "Stable",
-    ["Broken"] = "Stable",
-    ["Santa's Magic"] = "Stable",
-    ["Red Scratch"] = "Stable",
-    ["Red Fire"] = "Stable",
-    ["Arctic Gun"] = "Stable",
-    ["Icecracker"] = "Stable",
-    ["Nightsky"] = "Stable",
-    ["Blue Scratch"] = "Stable",
-    ["Ghost Gun"] = "Stable",
-    ["Rupture"] = "Stable",
-    ["Tree Gun"] = "Stable",
-    ["Tree Knife"] = "Stable",
-    ["Web"] = "Stable",
-    ["Chromatic Knife"] = "Stable",
-    ["Cursed Knife"] = "Stable",
-    ["Frostfade Knife"] = "Stable",
-    ["Vampire Knife"] = "Stable",
-    ["Cavern Gun"] = "Stable",
-    ["Cane"] = "Stable",
-    ["Silent Night"] = "Stable",
-    ["Aurora"] = "Stable",
-    ["Icicles"] = "Stable",
-    ["Dungeon"] = "Stable",
-    ["Candy Swirl"] = "Stable",
-    ["Toxic"] = "Stable",
-    ["Vampire"] = "Stable",
-    ["Snakebite"] = "Stable",
-    ["Monster"] = "Stable",
-    ["Magma"] = "Stable",
-    ["Bats"] = "Stable",
-    ["Green Marble"] = "Stable",
-    ["Jack"] = "Stable",
-    ["Orange Marble"] = "Stable",
-    ["Floral"] = "Stable",
-    ["Starry"] = "Stable",
-    ["Darkknife"] = "Stable",
-    ["Gingerbread"] = "Stable",
-    ["Mummy"] = "Stable",
-	["Zombified Knife"] = "Stable",
-    ["Bones"] = "Stable",
-    ["Gingerbread Knife"] = "Stable",
-    ["Brains"] = "Stable",
-    ["Sweater Knife"] = "Stable",
-    ["Branches"] = "Stable",
-    ["Frozen Gun"] = "Stable",
-    ["Lights Gun"] = "Stable",
-    ["Mummy Gun"] = "Stable",
-    ["Zombie Gun"] = "Stable",
-    ["Potion Knife"] = "Stable",
-    ["Zombified Gun"] = "Stable",
-    ["Potion"] = "Stable",
-    ["Void"] = "Stable",
-    ["Frozen Knife"] = "Stable",
-    ["Gingerbread Gun"] = "Stable",
-    ["Zombie Knife"] = "Stable",
-    ["Lights Knife"] = "Stable",
-    ["Mummy Knife"] = "Stable",
-    ["Moons"] = "Stable",
-    ["Webs"] = "Stable",
-    ["Holly Gun"] = "Stable",
-    ["Wolf"] = "Stable",
-    ["Nutcracker"] = "Stable",
-    ["Snowman Gun"] = "Stable",
-    ["Snowman Knife"] = "Stable",
-    ["Snowy"] = "Stable",
-    ["Wrapped Gun"] = "Stable",
-    ["Wrapped Knife"] = "Stable",
-    ["Gifted"] = "Stable",
-	["Glitch2"] = "Stable",
-    ["Glitch1"] = "Stable",
-    ["Gifts"] = "Stable",
-    ["Pine"] = "Stable",
-    ["Sparkle9"] = "Stable",
-    ["Sparkle8"] = "Stable",
-    ["Sparkle10"] = "Stable",
-    ["Ghoulish"] = "Stable",
-    ["Skool"] = "Stable",
-    ["Sparkle7"] = "Stable",
-    ["RIP"] = "Stable",
-    ["Tailslide"] = "Stable",
-    ["Coal"] = "Stable",
-    ["Ollie"] = "Stable",
-    ["Sidewinder"] = "Stable",
-    ["Sparkle5"] = "Stable",
-    ["Elf"] = "Stable",
-    ["Grave"] = "Stable",
-    ["CandyCorn"] = "Stable",
-    ["Sparkle4"] = "Stable",
-    ["Asteroid"] = "Stable",
-    ["Euro"] = "Stable",
-    ["Slime"] = "Stable",
-    ["Grind"] = "Stable",
-    ["Haunted"] = "Stable",
-    ["Combat II"] = "Stable",
-    ["Prism"] = "Stable",
-    ["Zombie"] = "Stable",
-    ["Snowman"] = "Stable",
-    ["Wrapped"] = "Stable",
-    ["Neon"] = "Stable",
-    ["Ecto"] = "Stable",
-    ["Witch"] = "Stable",
-    ["Indy"] = "Stable",
-    ["Hearts"] = "Stable",
-    ["Tulip"] = "Stable",
-    ["Goo"] = "Stable",
-    ["Patrick"] = "Stable",
-    ["Reptile"] = "Stable",
-    ["Bunny"] = "Stable",
-    ["Choco"] = "Stable",
-    ["Roses"] = "Stable",
-    ["Alex"] = "Stable",
-    ["Corl"] = "Stable",
-    ["Denis"] = "Stable",
-    ["Ornament1"] = "Stable",
-    ["Ornament2"] = "Stable",
-    ["Passion"] = "Stable",
-    ["Sketchy"] = "Stable",
-    ["Sub"] = "Stable",
-    ["Sweetheart"] = "Stable",
-    ["Valentine"] = "Stable",
-    ["2015"] = "Stable",
-    ["Santa"] = "Stable",
-    ["Infected"] = "Stable",
-    ["TNL"] = "Stable",
-	["Zombie Dog"] = "Stable",
-    ["Blue Pumpkin"] = "Stable",
-    ["Black Cat"] = "Stable",
-    ["Dogey"] = "Stable",
-    ["Red Pumpkin"] = "Stable",
-    ["Green Pumpkin"] = "Stable",
-    ["Jetstream"] = "Underpaid, 5",
-    ["Purple Pumpkin"] = "Stable",
-    ["Vampire Bat"] = "Stable",
-    ["Rudolph"] = "Stable",
-    ["Eyeball"] = "Stable",
-    ["Overseer Eye"] = "Stable",
-    ["Nobledragon"] = "Stable",
-    ["Pumpkin"] = "Stable",
-    ["Piggy"] = "Stable",
-    ["Reindeer"] = "Stable",
-    ["Fairy"] = "Stable",
-    ["Seahorsey"] = "Stable",
-    ["Chilly"] = "Stable",
-    ["Pengy"] = "Stable",
-    ["Tankie"] = "Underpaid, 5",
-    ["<3"] = "Stable",
-    ["Mechbug"] = "Stable",
-    ["UFO"] = "Underpaid, 3",
-    ["Deathspeaker"] = "Stable",
-    ["Phoenix"] = "Stable",
-    ["Frostbird"] = "Stable",
-    ["Electro"] = "Stable",
-    ["Sammy"] = "Stable",
-    ["Steambird"] = "Stable",
-    ["Badger"] = "Stable",
-    ["Ice Phoenix"] = "Stable",
-    ["Skelly"] = "Stable",
-    ["Traveller"] = "Stable",
-    ["Fire Bat"] = "Stable",
-    ["Fire Cat"] = "Stable",
-    ["Fire Bear"] = "Stable",
-    ["Fire Bunny"] = "Stable",
-    ["Fire Dog"] = "Stable",
-    ["Fire Fox"] = "Stable",
-    ["Fire Pig"] = "Stable",
-    ["Ghosty"] = "Stable",
-	["Chroma Fire Bunny"] = "Underpaid, 5-7",
-    ["Chroma Fire Cat"] = "Underpaid, 5-7",
-    ["Chroma Fire Dog"] = "Underpaid, 5-7",
-    ["Chroma Fire Fox"] = "Underpaid, 5-7",
-    ["Chroma Fire Bat"] = "Underpaid, 5-7",
-    ["Chroma Fire Pig"] = "Underpaid, 5-7",
-    ["Chroma Fire Bear"] = "Underpaid, 5-7",
-}
-
-local LP = game:GetService("Players").LocalPlayer
-local PG = LP:WaitForChild("PlayerGui", 5)
-if not PG then return end
-
-local UIS = game:GetService("UserInputService")
-
-local SUPREME_URLS = {
-    "https://supremevalues.com/mm2/ancients",
-    "https://supremevalues.com/mm2/chromas",
-    "https://supremevalues.com/mm2/godlies",
-    "https://supremevalues.com/mm2/vintages",
-}
-
-local function HTML_DECODE(TEXT)
-    if not TEXT then return "" end
-    TEXT = TEXT:gsub("&#039;", "'")
-    TEXT = TEXT:gsub("&quot;", '"')
-    TEXT = TEXT:gsub("&amp;", "&")
-    TEXT = TEXT:gsub("&lt;", "<")
-    TEXT = TEXT:gsub("&gt;", ">")
-    TEXT = TEXT:gsub("&nbsp;", " ")
-    return TEXT
-end
-
-local function NORMALIZE_DISPLAY_NAME(NAME)
-    NAME = HTML_DECODE(NAME)
-    NAME = NAME:gsub("<.->", "")
-    NAME = NAME:gsub("^%s+", "")
-    NAME = NAME:gsub("%s+$", "")
-    NAME = NAME:gsub("%s+", " ")
-    NAME = NAME:gsub("^C%.%s*", "Chroma ")
-    NAME = NAME:gsub("^Travelers ", "Traveler's ")
-    NAME = NAME:gsub("^Vampires ", "Vampire's ")
-    NAME = NAME:gsub("^Winters ", "Winter's ")
-    NAME = NAME:gsub("^Hallows ", "Hallow's ")
-    return NAME
-end
-
-local function NORMALIZE_LOOKUP_NAME(NAME)
-    return string.lower(NORMALIZE_DISPLAY_NAME(NAME))
-end
-
-local ITEM_VALUES = {}
-local ITEM_STABILITIES = {}
-local ITEM_DEMANDS = {}
-local ITEM_RANGES = {}
-
 local STABILITY_STATUS_MAP = {
     ["Overpaid For"] = "Overpaid For",
     ["Overpaid"] = "Overpaid For",
@@ -840,123 +88,282 @@ local STABILITY_STATUS_MAP = {
     ["Improving"] = "Improving",
 }
 
+-- ==============================
+-- НОРМАЛИЗАЦИЯ ИМЁН
+-- ==============================
+local function NORMALIZE_DISPLAY_NAME(NAME)
+    NAME = NAME:gsub("<.->", "")
+    NAME = NAME:gsub("^%s+", "")
+    NAME = NAME:gsub("%s+$", "")
+    NAME = NAME:gsub("%s+", " ")
+    NAME = NAME:gsub("^C%.%s*", "Chroma ")
+    NAME = NAME:gsub("^Travelers ", "Traveler's ")
+    NAME = NAME:gsub("^Vampires ", "Vampire's ")
+    NAME = NAME:gsub("^Winters ", "Winter's ")
+    NAME = NAME:gsub("^Hallows ", "Hallow's ")
+    return NAME
+end
+
+local function NORMALIZE_LOOKUP_NAME(NAME)
+    return string.lower(NORMALIZE_DISPLAY_NAME(NAME))
+end
+
+-- ==============================
+-- ПАРСИНГ ЧИСЕЛ / ДИАПАЗОНОВ
+-- ==============================
+local function PARSE_NUMBER(TEXT)
+    if type(TEXT) == "number" then return TEXT end
+    if type(TEXT) ~= "string" then return nil end
+    TEXT = TEXT:gsub(",", ""):gsub("%s+", "")
+    return tonumber(TEXT)
+end
+
+-- "3,450 - 3,500" -> 3450, 3500
+local function PARSE_RANGE(TEXT)
+    if type(TEXT) ~= "string" then return nil, nil end
+    local CLEAN = TEXT:gsub(",", "")
+    local A, B = CLEAN:match("(%d+%.?%d*)%s*%-%s*(%d+%.?%d*)")
+    if A and B then
+        A, B = tonumber(A), tonumber(B)
+        if A and B then
+            if A > B then A, B = B, A end
+            return A, B
+        end
+    end
+    return nil, nil
+end
+
+-- "x4 T1 Legendaries" -> 4, 1, "legendaries"
+local function PARSE_MULTIPLIER_VALUE(TEXT)
+    if type(TEXT) ~= "string" then return nil end
+    local MULT, TIER, CAT_WORD = TEXT:match("^[xX](%d+)%s+[tT](%d+)%s+(%a+)")
+    if not MULT then return nil end
+    local CAT = string.lower(CAT_WORD)
+    -- "Legendaries" -> "legendaries", "Rares" -> "rares" и т.д.
+    if not TAG_TO_CATEGORY[CAT] then
+        -- уже во множественном числе — проверяем по списку категорий
+        local FOUND = false
+        for _, C in ipairs(CATEGORIES) do
+            if C == CAT then FOUND = true break end
+        end
+        if not FOUND then return nil end
+    else
+        CAT = TAG_TO_CATEGORY[CAT]
+    end
+    return tonumber(MULT), tonumber(TIER), CAT
+end
+
+-- ==============================
+-- ДАННЫЕ
+-- ==============================
+-- ITEM_DB[lookupName][category] = entry
+-- entry = { valueText, valueNum, minV, maxV, demand, status, range, rise }
+local ITEM_DB = {}
+-- VARIANT_DB[baseName][category] = { {suffix="Gun", entry=...}, ... }
+local VARIANT_DB = {}
+-- TIER_STATS[category][tierNum] = { min = X, max = Y } (только числовые валюты)
+local TIER_STATS = {}
+local DATA_LOADED = false
+local LOADED_CATEGORIES = 0
+local PARSED_COUNT = 0
+
 local function TRANSLATE_STABILITY_STATUS(STATUS)
-    if not STATUS then return nil end
-    STATUS = HTML_DECODE(STATUS)
+    if not STATUS or STATUS == "" or STATUS == "N/A" then return nil end
     STATUS = STATUS:gsub("^%s+", ""):gsub("%s+$", "")
     if STATUS == "" then return nil end
     return STABILITY_STATUS_MAP[STATUS] or STATUS
 end
 
-local function NORMALIZE_RANGE_TEXT(RANGE_TEXT)
-    if not RANGE_TEXT then return nil end
-    RANGE_TEXT = HTML_DECODE(RANGE_TEXT)
-    RANGE_TEXT = RANGE_TEXT:gsub("^%s+", ""):gsub("%s+$", "")
-    RANGE_TEXT = RANGE_TEXT:gsub("%[", ""):gsub("%]", "")
-    RANGE_TEXT = RANGE_TEXT:gsub(",", "")
-    RANGE_TEXT = RANGE_TEXT:gsub("%s*%-%s*", "-")
-    if RANGE_TEXT == "" or RANGE_TEXT == "N/A" then return nil end
-    return RANGE_TEXT
-end
-
-local function BUILD_STABILITY_TEXT(STATUS_TEXT, RANGE_TEXT)
-    local STATUS = TRANSLATE_STABILITY_STATUS(STATUS_TEXT)
-    if not STATUS then return nil, nil end
-    local RANGE = NORMALIZE_RANGE_TEXT(RANGE_TEXT)
-    return STATUS, RANGE
-end
-
-local function NORMALIZE_FALLBACK_STABILITY(TEXT)
-    if not TEXT then return nil, nil end
-    local RAW_STATUS, RAW_RANGE = HTML_DECODE(TEXT):match("^%s*([^,]+)%s*,%s*(.+)%s*$")
-    if not RAW_STATUS then
-        local STATUS = TRANSLATE_STABILITY_STATUS(TEXT)
-        return STATUS, nil
+local function RECORD_TIER_STAT(CATEGORY, TIER_TEXT, VALUE_NUM)
+    if not VALUE_NUM or type(TIER_TEXT) ~= "string" then return end
+    local TIER_NUM = tonumber(TIER_TEXT:match("[tT]ier%s+(%d+)"))
+    if not TIER_NUM then return end
+    TIER_STATS[CATEGORY] = TIER_STATS[CATEGORY] or {}
+    local STAT = TIER_STATS[CATEGORY][TIER_NUM]
+    if not STAT then
+        TIER_STATS[CATEGORY][TIER_NUM] = { min = VALUE_NUM, max = VALUE_NUM }
+    else
+        if VALUE_NUM < STAT.min then STAT.min = VALUE_NUM end
+        if VALUE_NUM > STAT.max then STAT.max = VALUE_NUM end
     end
-    return BUILD_STABILITY_TEXT(RAW_STATUS, RAW_RANGE)
 end
 
-local function REBUILD_FALLBACK_DATA()
-    ITEM_VALUES = {}
-    ITEM_STABILITIES = {}
-    ITEM_DEMANDS = {}
-    ITEM_RANGES = {}
-    for NAME, VALUE in pairs(ancientValues) do
-        ITEM_VALUES[NORMALIZE_LOOKUP_NAME(NAME)] = VALUE
+local function FETCH_CATEGORY(CATEGORY)
+    local OK, RESPONSE = pcall(function()
+        return game:HttpGet(BASE_API_URL .. CATEGORY)
+    end)
+    if not OK or not RESPONSE or RESPONSE == "" then return nil end
+    local PARSED_OK, DATA = pcall(function()
+        return HttpService:JSONDecode(RESPONSE)
+    end)
+    if not PARSED_OK or type(DATA) ~= "table" or type(DATA.items) ~= "table" then
+        return nil
     end
-    for NAME, STABILITY in pairs(stabilityValues) do
-        local lookupName = NORMALIZE_LOOKUP_NAME(NAME)
-        local status, range = NORMALIZE_FALLBACK_STABILITY(STABILITY)
-        if status then
-            ITEM_STABILITIES[lookupName] = status
+    return DATA.items
+end
+
+local function REFRESH_VALUES_FROM_SITE()
+    ITEM_DB = {}
+    VARIANT_DB = {}
+    TIER_STATS = {}
+    LOADED_CATEGORIES = 0
+    PARSED_COUNT = 0
+
+    for _, CATEGORY in ipairs(CATEGORIES) do
+        local ITEMS = FETCH_CATEGORY(CATEGORY)
+        if not ITEMS then
+            task.wait(1)
+            ITEMS = FETCH_CATEGORY(CATEGORY) -- одна повторная попытка
         end
-        if range then
-            ITEM_RANGES[lookupName] = range
+        if ITEMS then
+            LOADED_CATEGORIES = LOADED_CATEGORIES + 1
+            for _, ITEM in ipairs(ITEMS) do
+                if type(ITEM) == "table" and type(ITEM.name) == "string" and ITEM.name ~= "" then
+                    local LOOKUP = NORMALIZE_LOOKUP_NAME(ITEM.name)
+                    local VALUE_TEXT = ITEM.value
+                    local VALUE_NUM = PARSE_NUMBER(VALUE_TEXT)
+                    local RANGE_MIN, RANGE_MAX = PARSE_RANGE(ITEM.rangedValue)
+
+                    RECORD_TIER_STAT(CATEGORY, ITEM.tier, VALUE_NUM)
+
+                    local ENTRY = {
+                        valueText = (type(VALUE_TEXT) == "string" and VALUE_TEXT ~= "") and VALUE_TEXT or nil,
+                        valueNum = VALUE_NUM,
+                        rangeMin = RANGE_MIN,
+                        rangeMax = RANGE_MAX,
+                        rangeText = (ITEM.rangedValue and ITEM.rangedValue ~= "N/A" and ITEM.rangedValue ~= "") and ITEM.rangedValue or nil,
+                        demand = PARSE_NUMBER(ITEM.demand),
+                        rise = PARSE_NUMBER(ITEM.riseChance),
+                        status = TRANSLATE_STABILITY_STATUS(ITEM.stability),
+                        category = CATEGORY,
+                    }
+
+                    ITEM_DB[LOOKUP] = ITEM_DB[LOOKUP] or {}
+                    -- не перезаписываем, если имя внутри категории повторяется
+                    if not ITEM_DB[LOOKUP][CATEGORY] then
+                        ITEM_DB[LOOKUP][CATEGORY] = ENTRY
+                        PARSED_COUNT = PARSED_COUNT + 1
+                    end
+
+                    -- Индекс вариантов: "arctic (gun)" -> base "arctic", suffix "Gun"
+                    local BASE, SUFFIX = LOOKUP:match("^(.-)%s*%((%a+)%)$")
+                    if BASE and SUFFIX and (SUFFIX == "gun" or SUFFIX == "knife") then
+                        VARIANT_DB[BASE] = VARIANT_DB[BASE] or {}
+                        VARIANT_DB[BASE][CATEGORY] = VARIANT_DB[BASE][CATEGORY] or {}
+                        table.insert(VARIANT_DB[BASE][CATEGORY], {
+                            suffix = (SUFFIX == "gun") and "Gun" or "Knife",
+                            entry = ENTRY,
+                        })
+                    end
+                end
+            end
         end
     end
+
+    DATA_LOADED = PARSED_COUNT > 0
+    return PARSED_COUNT
 end
 
-local function PARSE_PAGE_DATA(HTML)
-    local COUNT = 0
-    for RAW_NAME, RAW_VALUE, RAW_RANGE, RAW_STABILITY, RAW_DEMAND in HTML:gmatch('data%-name=\'(.-)\'.-itemvalue">(.-)</b>.-itemrange">(.-)</b>.-itemstability">(.-)</b>.-Demand%s*%-%s*<b>(%d+)</b>') do
-        local NAME = NORMALIZE_DISPLAY_NAME(RAW_NAME)
-        local VALUE = tonumber((HTML_DECODE(RAW_VALUE):gsub(",", ""):gsub("%s+", "")))
-        local STATUS, RANGE = BUILD_STABILITY_TEXT(RAW_STABILITY, RAW_RANGE)
-        local DEMAND = tonumber(RAW_DEMAND)
-        if NAME ~= "" then
-            local LOOKUP_NAME = NORMALIZE_LOOKUP_NAME(NAME)
-            if VALUE then ITEM_VALUES[LOOKUP_NAME] = VALUE end
-            if STATUS then ITEM_STABILITIES[LOOKUP_NAME] = STATUS end
-            if RANGE then ITEM_RANGES[LOOKUP_NAME] = RANGE end
-            if DEMAND then ITEM_DEMANDS[LOOKUP_NAME] = DEMAND end
-            COUNT = COUNT + 1
+-- ==============================
+-- РАСЧЁТ МИН/МАКС ВАЛЮТЫ ЗАПИСИ
+-- ==============================
+-- Возвращает: displayText, minV, maxV, nominalV (может быть nil если N/A)
+local function RESOLVE_ENTRY_VALUE(ENTRY)
+    -- 1) Обычная числовая валюта
+    if ENTRY.valueNum then
+        local MIN_V, MAX_V = ENTRY.valueNum, ENTRY.valueNum
+        -- Диапазон (Underpaid For / Overpaid For / Fluctuating и т.д.)
+        if ENTRY.rangeMin and ENTRY.rangeMax then
+            MIN_V = math.min(MIN_V, ENTRY.rangeMin)
+            MAX_V = math.max(MAX_V, ENTRY.rangeMax)
         end
+        return tostring(ENTRY.valueNum), MIN_V, MAX_V, ENTRY.valueNum
     end
-    return COUNT
-end
 
-local function REFRESH_VALUES_FROM_SUPREME()
-    REBUILD_FALLBACK_DATA()
-    local TOTAL_PARSED = 0
-    for _, URL in ipairs(SUPREME_URLS) do
-        local OK, HTML = pcall(function() return game:HttpGet(URL) end)
-        if OK and HTML and HTML ~= "" then
-            TOTAL_PARSED = TOTAL_PARSED + PARSE_PAGE_DATA(HTML)
+    -- 2) Валюта вида "x4 T1 Legendaries"
+    if ENTRY.valueText then
+        local MULT, TIER, CAT = PARSE_MULTIPLIER_VALUE(ENTRY.valueText)
+        if MULT and TIER and CAT and TIER_STATS[CAT] and TIER_STATS[CAT][TIER] then
+            local STAT = TIER_STATS[CAT][TIER]
+            local MIN_V = MULT * STAT.min
+            local MAX_V = MULT * STAT.max
+            local NOMINAL = math.floor((MIN_V + MAX_V) / 2 + 0.5)
+            local DISPLAY = ENTRY.valueText
+            if MIN_V ~= MAX_V then
+                DISPLAY = DISPLAY .. " (~" .. MIN_V .. "-" .. MAX_V .. ")"
+            else
+                DISPLAY = DISPLAY .. " (~" .. MIN_V .. ")"
+            end
+            return DISPLAY, MIN_V, MAX_V, NOMINAL
         end
+        -- Просто текст (например "N/A") — валюты нет
+        return ENTRY.valueText, 0, 0, nil
     end
-    return TOTAL_PARSED
+
+    return "N/A", 0, 0, nil
 end
 
-local function GET_ITEM_VALUE(ITEM_NAME, IS_CHROMA)
+-- ==============================
+-- ПОИСК ПРЕДМЕТА (с учётом категории и вариантов Gun/Knife)
+-- ==============================
+local function GET_LOOKUP_NAME(ITEM_NAME, IS_CHROMA)
     local LOOKUP_NAME = ITEM_NAME
     if IS_CHROMA and not ITEM_NAME:match("^Chroma%s+") and not ITEM_NAME:match("^C%.%s*") then
         LOOKUP_NAME = "Chroma " .. ITEM_NAME
     end
-    return ITEM_VALUES[NORMALIZE_LOOKUP_NAME(LOOKUP_NAME)]
+    return NORMALIZE_LOOKUP_NAME(LOOKUP_NAME)
 end
 
-local function GET_ITEM_STABILITY(ITEM_NAME, IS_CHROMA)
-    local LOOKUP_NAME = ITEM_NAME
-    if IS_CHROMA and not ITEM_NAME:match("^Chroma%s+") and not ITEM_NAME:match("^C%.%s*") then
-        LOOKUP_NAME = "Chroma " .. ITEM_NAME
+-- Возвращает список записей { {suffix=nil|"Gun"|"Knife", entry=...}, ... }
+-- Приоритет: сперва категория из тега GUI, затем ЕДИНЫЙ проход по
+-- приоритету категорий, где точное имя и варианты Gun/Knife проверяются
+-- на КАЖДОМ шаге. Это чинит случаи вроде Arctic: "Arctic (Gun/Knife)" в
+-- legendaries теперь выигрывает у пустого "Arctic" (N/A) в untradables.
+local function FIND_ITEM_ENTRIES(ITEM_NAME, IS_CHROMA, PREFERRED_CATEGORY)
+    local LOOKUP = GET_LOOKUP_NAME(ITEM_NAME, IS_CHROMA)
+    local BY_CATEGORY = ITEM_DB[LOOKUP]
+    local VARIANTS = VARIANT_DB[LOOKUP]
+    if not BY_CATEGORY and not VARIANTS then return nil end
+
+    -- 1) Категория из тега редкости в GUI — самый надёжный признак
+    if PREFERRED_CATEGORY then
+        if BY_CATEGORY and BY_CATEGORY[PREFERRED_CATEGORY] then
+            return { { suffix = nil, entry = BY_CATEGORY[PREFERRED_CATEGORY] } }
+        end
+        if VARIANTS and VARIANTS[PREFERRED_CATEGORY] then
+            return VARIANTS[PREFERRED_CATEGORY]
+        end
     end
-    return ITEM_STABILITIES[NORMALIZE_LOOKUP_NAME(LOOKUP_NAME)]
+
+    -- 2) Единый проход по приоритету категорий (варианты Gun/Knife
+    -- проверяются наравне с точным именем на каждом шаге)
+    for _, CATEGORY in ipairs(CATEGORIES) do
+        if BY_CATEGORY and BY_CATEGORY[CATEGORY] then
+            return { { suffix = nil, entry = BY_CATEGORY[CATEGORY] } }
+        end
+        if VARIANTS and VARIANTS[CATEGORY] then
+            return VARIANTS[CATEGORY]
+        end
+    end
+
+    return nil
 end
 
-local function GET_ITEM_RANGE(ITEM_NAME, IS_CHROMA)
-    local LOOKUP_NAME = ITEM_NAME
-    if IS_CHROMA and not ITEM_NAME:match("^Chroma%s+") and not ITEM_NAME:match("^C%.%s*") then
-        LOOKUP_NAME = "Chroma " .. ITEM_NAME
+-- ==============================
+-- ЧТЕНИЕ ТЕГА РЕДКОСТИ ИЗ GUI
+-- ==============================
+local function GET_PREFERRED_CATEGORY(ITEM_FRAME)
+    local TAGS = ITEM_FRAME:FindFirstChild("Tags")
+    if not TAGS then return nil end
+    for _, TAG in ipairs(TAGS:GetChildren()) do
+        if TAG:IsA("GuiObject") and TAG.Visible then
+            local CATEGORY = TAG_TO_CATEGORY[string.lower(TAG.Name)]
+            if CATEGORY and CATEGORY ~= "chromas" then
+                return CATEGORY
+            end
+        end
     end
-    return ITEM_RANGES[NORMALIZE_LOOKUP_NAME(LOOKUP_NAME)]
-end
-
-local function GET_ITEM_DEMAND(ITEM_NAME, IS_CHROMA)
-    local LOOKUP_NAME = ITEM_NAME
-    if IS_CHROMA and not ITEM_NAME:match("^Chroma%s+") and not ITEM_NAME:match("^C%.%s*") then
-        LOOKUP_NAME = "Chroma " .. ITEM_NAME
-    end
-    return ITEM_DEMANDS[NORMALIZE_LOOKUP_NAME(LOOKUP_NAME)]
+    return nil
 end
 
 local function GET_STABILITY_COLOR(STATUS)
@@ -973,19 +380,21 @@ local function GET_STABILITY_ARROW(STATUS)
     return stabilityArrows["Unknown"]
 end
 
--- Единая рамка для Value, Demand и Status
+-- ==============================
+-- UI
+-- ==============================
 local function CREATE_INFO_LABEL(PARENT)
     local infoLabel = Instance.new("TextLabel")
     infoLabel.Name = "InfoLabel"
-    infoLabel.Size = UDim2.new(1, 0, 0.35, 0)
-    infoLabel.Position = UDim2.new(0, 0, 0.325, 0)
+    infoLabel.Size = UDim2.new(1, 0, 0.43, 0)
+    infoLabel.Position = UDim2.new(0, 0, 0.15, 0)
     infoLabel.BackgroundTransparency = 0.5
     infoLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     infoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    infoLabel.TextScaled = true
+    infoLabel.TextScaled = false
     infoLabel.TextWrapped = true
     infoLabel.Font = Enum.Font.GothamBold
-    infoLabel.TextSize = 21
+    infoLabel.TextSize = 11
     infoLabel.RichText = true
     infoLabel.Parent = PARENT
     return infoLabel
@@ -1051,27 +460,58 @@ local function GET_ITEM_UI_DATA(ITEM_FRAME)
     return ITEM_NAME_LBL.Text, AMOUNT, IS_CHROMA
 end
 
+-- Возвращает: nominal, minV, maxV (все уже умножены на количество)
 local function UPDATE_ITEM_DISPLAY(ITEM_FRAME)
-    if not ITEM_FRAME or not ITEM_FRAME:IsA("GuiObject") then return 0 end
-    if not ITEM_FRAME.Visible then CLEAR_ITEM_LABELS(ITEM_FRAME); return 0 end
+    if not ITEM_FRAME or not ITEM_FRAME:IsA("GuiObject") then return 0, 0, 0 end
+    if not ITEM_FRAME.Visible then CLEAR_ITEM_LABELS(ITEM_FRAME); return 0, 0, 0 end
     local ITEM_NAME, AMOUNT, IS_CHROMA = GET_ITEM_UI_DATA(ITEM_FRAME)
-    if not ITEM_NAME then CLEAR_ITEM_LABELS(ITEM_FRAME); return 0 end
-    local ITEM_VALUE = GET_ITEM_VALUE(ITEM_NAME, IS_CHROMA)
-    local ITEM_STATUS = GET_ITEM_STABILITY(ITEM_NAME, IS_CHROMA)
-    local ITEM_RANGE = GET_ITEM_RANGE(ITEM_NAME, IS_CHROMA)
-    local ITEM_DEMAND = GET_ITEM_DEMAND(ITEM_NAME, IS_CHROMA)
-    if not ITEM_VALUE then CLEAR_ITEM_LABELS(ITEM_FRAME); return 0 end
+    if not ITEM_NAME then CLEAR_ITEM_LABELS(ITEM_FRAME); return 0, 0, 0 end
+
+    local PREFERRED_CATEGORY = GET_PREFERRED_CATEGORY(ITEM_FRAME)
+    local ENTRIES = FIND_ITEM_ENTRIES(ITEM_NAME, IS_CHROMA, PREFERRED_CATEGORY)
+    if not ENTRIES or #ENTRIES == 0 then CLEAR_ITEM_LABELS(ITEM_FRAME); return 0, 0, 0 end
+
+    -- Агрегируем варианты (обычно 1 запись; для Gun/Knife может быть 2)
+    local TOTAL_MIN, TOTAL_MAX, TOTAL_NOMINAL = nil, nil, nil
+    local VALUE_PARTS = {}
+    local FIRST_ENTRY = ENTRIES[1].entry
+
+    for _, ITEM in ipairs(ENTRIES) do
+        local DISPLAY, MIN_V, MAX_V, NOMINAL = RESOLVE_ENTRY_VALUE(ITEM.entry)
+        if ITEM.suffix then
+            table.insert(VALUE_PARTS, ITEM.suffix .. ": " .. DISPLAY)
+        else
+            table.insert(VALUE_PARTS, DISPLAY)
+        end
+        if NOMINAL then
+            TOTAL_MIN = math.min(TOTAL_MIN or MIN_V, MIN_V)
+            TOTAL_MAX = math.max(TOTAL_MAX or MAX_V, MAX_V)
+            TOTAL_NOMINAL = math.max(TOTAL_NOMINAL or NOMINAL, NOMINAL)
+        end
+    end
+
+    TOTAL_MIN = TOTAL_MIN or 0
+    TOTAL_MAX = TOTAL_MAX or 0
+    TOTAL_NOMINAL = TOTAL_NOMINAL or 0
 
     local INFO_LABEL = ITEM_FRAME:FindFirstChild("InfoLabel")
     if not INFO_LABEL then INFO_LABEL = CREATE_INFO_LABEL(ITEM_FRAME) end
 
-    local valueLine = "Value: " .. (ITEM_VALUE * AMOUNT)
-    local demandLine = "Demand: " .. (ITEM_DEMAND or "N/A")
-    local stabilityLine = BUILD_STABILITY_DISPLAY(ITEM_STATUS, ITEM_RANGE)
+    local VALUE_LINE = "Value: " .. table.concat(VALUE_PARTS, " / ")
+    if AMOUNT > 1 and TOTAL_NOMINAL > 0 then
+        VALUE_LINE = VALUE_LINE .. " (x" .. AMOUNT .. " = " .. (TOTAL_NOMINAL * AMOUNT) .. ")"
+    end
 
-    INFO_LABEL.Text = valueLine .. "\n" .. demandLine .. "\n" .. stabilityLine
+    local DEMAND_LINE = "Demand: " .. (FIRST_ENTRY.demand or "N/A")
+    if FIRST_ENTRY.rise ~= nil then
+        DEMAND_LINE = DEMAND_LINE .. ", " .. FIRST_ENTRY.rise .. "%"
+    end
 
-    return ITEM_VALUE * AMOUNT
+    local STABILITY_LINE = BUILD_STABILITY_DISPLAY(FIRST_ENTRY.status, FIRST_ENTRY.rangeText)
+
+    INFO_LABEL.Text = VALUE_LINE .. "\n" .. DEMAND_LINE .. "\n" .. STABILITY_LINE
+
+    return TOTAL_NOMINAL * AMOUNT, TOTAL_MIN * AMOUNT, TOTAL_MAX * AMOUNT
 end
 
 local function HOOK_ITEM_FRAME(ITEM_FRAME, UPDATE_CALLBACK)
@@ -1090,8 +530,11 @@ local function HOOK_ITEM_FRAME(ITEM_FRAME, UPDATE_CALLBACK)
     end
     local TAGS = ITEM_FRAME:FindFirstChild("Tags")
     if TAGS then
-        local CHROMA_TAG = TAGS:FindFirstChild("Chroma")
-        if CHROMA_TAG then CHROMA_TAG:GetPropertyChangedSignal("Visible"):Connect(UPDATE_CALLBACK) end
+        for _, TAG in ipairs(TAGS:GetChildren()) do
+            if TAG:IsA("GuiObject") then
+                TAG:GetPropertyChangedSignal("Visible"):Connect(UPDATE_CALLBACK)
+            end
+        end
     end
 end
 
@@ -1113,22 +556,64 @@ local function SETUP_TRADE_GUI(TG)
     local TOT = TO:WaitForChild("Title", 5)
     if not TOT then return end
 
+    -- Автомасштабирование заголовков: длинный текст (Min/Max профит,
+    -- диапазоны) уменьшается, чтобы всегда помещаться в рамки
+    for _, TITLE in ipairs({ YOT, TOT }) do
+        if TITLE:IsA("TextLabel") then
+            TITLE.TextScaled = true
+            TITLE.TextWrapped = true
+            local CONSTRAINT = TITLE:FindFirstChild("TradeHelperTextConstraint")
+            if not CONSTRAINT then
+                CONSTRAINT = Instance.new("UITextSizeConstraint")
+                CONSTRAINT.Name = "TradeHelperTextConstraint"
+                CONSTRAINT.MinTextSize = 12
+                CONSTRAINT.MaxTextSize = 22
+                CONSTRAINT.Parent = TITLE
+            end
+        end
+    end
+
+    local function SUM_OFFER(CONTAINER)
+        local TOTAL, TOTAL_MIN, TOTAL_MAX = 0, 0, 0
+        for I = 1, 4 do
+            local NEW_ITEM = CONTAINER:FindFirstChild("NewItem" .. I)
+            if NEW_ITEM then
+                local V, MIN_V, MAX_V = UPDATE_ITEM_DISPLAY(NEW_ITEM)
+                TOTAL = TOTAL + V
+                TOTAL_MIN = TOTAL_MIN + MIN_V
+                TOTAL_MAX = TOTAL_MAX + MAX_V
+            end
+        end
+        return TOTAL, TOTAL_MIN, TOTAL_MAX
+    end
+
+    local function FORMAT_TOTAL(TOTAL, TOTAL_MIN, TOTAL_MAX)
+        local TEXT = "Profit: " .. TOTAL
+        if TOTAL_MIN ~= TOTAL_MAX then
+            TEXT = TEXT .. " (" .. TOTAL_MIN .. "-" .. TOTAL_MAX .. ")"
+        end
+        return TEXT
+    end
+
     local function UPDATE_OFFER_VALUES()
-        local YOUR_TOTAL_VALUE = 0
-        for I = 1, 4 do
-            local NEW_ITEM = YOC:FindFirstChild("NewItem" .. I)
-            if NEW_ITEM then YOUR_TOTAL_VALUE = YOUR_TOTAL_VALUE + UPDATE_ITEM_DISPLAY(NEW_ITEM) end
-        end
-        YOT.Text = "Total Value: " .. YOUR_TOTAL_VALUE
-        local THEIR_TOTAL_VALUE = 0
-        for I = 1, 4 do
-            local NEW_ITEM = TOC:FindFirstChild("NewItem" .. I)
-            if NEW_ITEM then THEIR_TOTAL_VALUE = THEIR_TOTAL_VALUE + UPDATE_ITEM_DISPLAY(NEW_ITEM) end
-        end
-        TOT.Text = "Total Value: " .. THEIR_TOTAL_VALUE
-        if THEIR_TOTAL_VALUE > 0 then
-            local PROFIT = THEIR_TOTAL_VALUE - YOUR_TOTAL_VALUE
-            YOT.Text = YOT.Text .. " (Profit: " .. PROFIT .. ")"
+        local YOUR_TOTAL, YOUR_MIN, YOUR_MAX = SUM_OFFER(YOC)
+        local THEIR_TOTAL, THEIR_MIN, THEIR_MAX = SUM_OFFER(TOC)
+
+        YOT.Text = FORMAT_TOTAL(YOUR_TOTAL, YOUR_MIN, YOUR_MAX)
+        TOT.Text = FORMAT_TOTAL(THEIR_TOTAL, THEIR_MIN, THEIR_MAX)
+
+        if THEIR_TOTAL > 0 then
+            local PROFIT = THEIR_TOTAL - YOUR_TOTAL
+            -- Минимальный профит: их минимум минус ваш максимум
+            -- (худший сценарий: их скины по нижней границе, ваши — по верхней)
+            local MIN_PROFIT = THEIR_MIN - YOUR_MAX
+            -- Максимальный профит: их максимум минус ваш минимум
+            local MAX_PROFIT = THEIR_MAX - YOUR_MIN
+            local PROFIT_TEXT = " | Profit: " .. PROFIT
+            if MIN_PROFIT ~= PROFIT or MAX_PROFIT ~= PROFIT then
+                PROFIT_TEXT = PROFIT_TEXT .. " (" .. MIN_PROFIT .. ".." .. MAX_PROFIT .. ")"
+            end
+            YOT.Text = YOT.Text .. PROFIT_TEXT
         end
     end
 
@@ -1143,27 +628,36 @@ local function SETUP_TRADE_GUI(TG)
     end
 end
 
-local function IS_INVENTORY_OBJECT(OBJ)
+-- Слоты офферов (YourOffer/TheirOffer) обрабатываются отдельно
+-- в SETUP_TRADE_GUI, поэтому их пропускаем. Всё остальное — включая
+-- панель выбора своих скинов ВНУТРИ трейд-окна, свой инвентарь и
+-- профили других игроков — хукаем здесь.
+local function IS_TRADE_OBJECT(OBJ)
     local CURRENT = OBJ
+    local IN_TRADE_GUI = false
+    local IN_OFFER = false
     while CURRENT and CURRENT ~= PG do
         local LOWER_NAME = string.lower(CURRENT.Name)
-        if string.find(LOWER_NAME, "inventory", 1, true)
-            or string.find(LOWER_NAME, "weapon", 1, true)
-            or string.find(LOWER_NAME, "backpack", 1, true) then
-            return true
+        if string.find(LOWER_NAME, "tradegui", 1, true) then
+            IN_TRADE_GUI = true
+        end
+        if LOWER_NAME == "youroffer" or LOWER_NAME == "theiroffer" then
+            IN_OFFER = true
         end
         CURRENT = CURRENT.Parent
     end
-    return false
+    -- Пропускаем только слоты офферов внутри трейд-окна
+    return IN_TRADE_GUI and IN_OFFER
 end
 
 local function TRY_SETUP_INVENTORY_ITEM(OBJ)
     if not OBJ or not OBJ:IsA("GuiObject") then return end
-    if not IS_INVENTORY_OBJECT(OBJ) then return end
+    -- Фрейм предмета определяем по структуре: ItemName -> Label
     local ITEM_NAME_OBJ = OBJ:FindFirstChild("ItemName")
     if not ITEM_NAME_OBJ then return end
     local ITEM_NAME_LBL = ITEM_NAME_OBJ:FindFirstChild("Label")
     if not ITEM_NAME_LBL then return end
+    if IS_TRADE_OBJECT(OBJ) then return end
     local function UPDATE_THIS_ITEM() UPDATE_ITEM_DISPLAY(OBJ) end
     HOOK_ITEM_FRAME(OBJ, UPDATE_THIS_ITEM)
     UPDATE_THIS_ITEM()
@@ -1174,14 +668,27 @@ local function SETUP_INVENTORY_GUI()
         TRY_SETUP_INVENTORY_ITEM(OBJ)
     end
     PG.DescendantAdded:Connect(function(OBJ)
-        TRY_SETUP_INVENTORY_ITEM(OBJ)
+        -- В профилях игроков ItemName/Label создаются ПОСЛЕ самого фрейма,
+        -- поэтому пробуем и сам объект, и его предков с небольшой задержкой
+        task.defer(function()
+            TRY_SETUP_INVENTORY_ITEM(OBJ)
+            if OBJ.Name == "Label" and OBJ.Parent and OBJ.Parent.Name == "ItemName" then
+                TRY_SETUP_INVENTORY_ITEM(OBJ.Parent.Parent)
+            elseif OBJ.Name == "ItemName" then
+                TRY_SETUP_INVENTORY_ITEM(OBJ.Parent)
+            end
+        end)
     end)
 end
 
 -- ==============================
--- ЗАГРУЗКА ДАННЫХ
+-- ЗАГРУЗКА ДАННЫХ (с повторными попытками)
 -- ==============================
-local PARSED_COUNT = REFRESH_VALUES_FROM_SUPREME()
+for ATTEMPT = 1, 3 do
+    PARSED_COUNT = REFRESH_VALUES_FROM_SITE()
+    if PARSED_COUNT > 0 then break end
+    task.wait(2)
+end
 
 -- ==============================
 -- НАСТРОЙКА ТРЕЙД GUI
@@ -1199,10 +706,12 @@ local NotificationBindable = Instance.new("BindableFunction")
 NotificationBindable.OnInvoke = function() end
 
 game.StarterGui:SetCore("SendNotification", {
-    Title = "Trade Helper";
-    Text = "Cracked by Who? D A R K";
+    Title = "Trade Helper 5.0";
+    Text = DATA_LOADED
+        and ("Loaded: " .. PARSED_COUNT .. " items, " .. LOADED_CATEGORIES .. "/" .. #CATEGORIES .. " categories")
+        or "Error: failed to load values!";
     Icon = "";
-    Duration = 0.5;
-    Button1 = "Supreme Values";
+    Duration = 5;
+    Button1 = "Close";
     Callback = NotificationBindable;
 })

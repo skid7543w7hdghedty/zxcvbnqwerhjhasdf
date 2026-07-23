@@ -14,7 +14,7 @@
     --     иначе — по приоритету категорий)
     -- ================================================================
 
-    local BASE_API_URL = "https://update-currency-script.vercel.app/api/values/"
+    local BASE_API_URL = "https://mm2-values-site-1.vercel.app/api/values/"
 
     -- Порядок = приоритет при совпадении имён (если категорию не удалось
     -- определить по тегу в GUI)

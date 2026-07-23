@@ -1,5 +1,11 @@
     -- ================================================================
-    -- Trade Helper 5.0
+    -- Trade Helper Mobile 5.4
+    -- Новое в 5.4 (Mobile):
+    --   * Common без числовой валюты (например "x1 T1 Common") не
+    --     показывают оверлей и не учитываются в трейде
+    --   * Новый формат заголовков трейда: у вас
+    --     "Values: N | Profit: P (мин-макс)", у другого игрока
+    --     "Values: N (мин-макс)"
     -- Загружает данные напрямую из КАЖДОЙ категории сайта:
     -- /api/values/<category> — в отличие от /api/values/all, эти
     -- эндпоинты отдают ПОЛНЫЕ данные:
@@ -486,6 +492,18 @@
         local ENTRIES = FIND_ITEM_ENTRIES(ITEM_NAME, IS_CHROMA, PREFERRED_CATEGORY)
         if not ENTRIES or #ENTRIES == 0 then CLEAR_ITEM_LABELS(ITEM_FRAME); return 0, 0, 0 end
 
+        -- Common без числовой валюты (например "x1 T1 Common") ничего не стоят —
+        -- не показываем для них оверлей и не считаем в трейде
+        local HAS_REAL_VALUE = false
+        for _, ITEM in ipairs(ENTRIES) do
+            local CAT = ITEM.entry.category
+            if ITEM.entry.valueNum or CAT ~= "commons" then
+                HAS_REAL_VALUE = true
+                break
+            end
+        end
+        if not HAS_REAL_VALUE then CLEAR_ITEM_LABELS(ITEM_FRAME); return 0, 0, 0 end
+
         -- Агрегируем варианты (обычно 1 запись; для Gun/Knife может быть 2)
         local TOTAL_MIN, TOTAL_MAX, TOTAL_NOMINAL = nil, nil, nil
         local VALUE_PARTS = {}
@@ -602,34 +620,34 @@
             return TOTAL, TOTAL_MIN, TOTAL_MAX
         end
 
-        local function FORMAT_TOTAL(TOTAL, TOTAL_MIN, TOTAL_MAX)
-            local TEXT = "Profit: " .. TOTAL
-            if TOTAL_MIN ~= TOTAL_MAX then
-                TEXT = TEXT .. " (" .. TOTAL_MIN .. "-" .. TOTAL_MAX .. ")"
-            end
-            return TEXT
-        end
-
         local function UPDATE_OFFER_VALUES()
             local YOUR_TOTAL, YOUR_MIN, YOUR_MAX = SUM_OFFER(YOC)
             local THEIR_TOTAL, THEIR_MIN, THEIR_MAX = SUM_OFFER(TOC)
 
-            YOT.Text = FORMAT_TOTAL(YOUR_TOTAL, YOUR_MIN, YOUR_MAX)
-            TOT.Text = FORMAT_TOTAL(THEIR_TOTAL, THEIR_MIN, THEIR_MAX)
+            -- Другой игрок: сколько он даёт сейчас, в скобках — минимум и максимум
+            -- (скобки появляются только если есть предметы со статусом кроме Stable:
+            -- Overpaid For, Underpaid For, Fluctuating и т.д.)
+            local THEIR_TEXT = "Values: " .. THEIR_TOTAL
+            if THEIR_MIN ~= THEIR_MAX then
+                THEIR_TEXT = THEIR_TEXT .. " (" .. THEIR_MIN .. "-" .. THEIR_MAX .. ")"
+            end
+            TOT.Text = THEIR_TEXT
 
+            -- Вы: сколько валют вы отдаёте, затем профит и его разброс
+            local YOUR_TEXT = "Values: " .. YOUR_TOTAL
             if THEIR_TOTAL > 0 then
                 local PROFIT = THEIR_TOTAL - YOUR_TOTAL
+                YOUR_TEXT = YOUR_TEXT .. " | Profit: " .. PROFIT
                 -- Минимальный профит: их минимум минус ваш максимум
                 -- (худший сценарий: их скины по нижней границе, ваши — по верхней)
                 local MIN_PROFIT = THEIR_MIN - YOUR_MAX
                 -- Максимальный профит: их максимум минус ваш минимум
                 local MAX_PROFIT = THEIR_MAX - YOUR_MIN
-                local PROFIT_TEXT = " | Profit: " .. PROFIT
-                if MIN_PROFIT ~= PROFIT or MAX_PROFIT ~= PROFIT then
-                    PROFIT_TEXT = PROFIT_TEXT .. " (" .. MIN_PROFIT .. ".." .. MAX_PROFIT .. ")"
+                if MIN_PROFIT ~= MAX_PROFIT then
+                    YOUR_TEXT = YOUR_TEXT .. " (" .. MIN_PROFIT .. "-" .. MAX_PROFIT .. ")"
                 end
-                YOT.Text = YOT.Text .. PROFIT_TEXT
             end
+            YOT.Text = YOUR_TEXT
         end
 
         UPDATE_OFFER_VALUES()

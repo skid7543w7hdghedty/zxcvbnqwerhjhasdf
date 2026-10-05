@@ -1,4 +1,4 @@
-local BASE_API_URL = "https://mm2-trade-helper-umber.vercel.app/api/values/"
+local BASE_API_URL = "https://mm2-trade-helper-new.vercel.app/api/values/"
 
     -- Порядок = приоритет при совпадении имён (если категорию не удалось
     -- определить по тегу в GUI)
